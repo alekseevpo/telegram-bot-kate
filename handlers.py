@@ -63,12 +63,22 @@ class UserHandlers:
 /cart - Корзина покупок
 /add <ID> [количество] - Добавить в корзину
 
+🌐 **Веб-версия:**
+📱 Откройте наш сайт для удобного просмотра товаров и услуг:
+🔗 https://telegram-bot-kate-qbdv.vercel.app
+
 Если у вас есть вопросы, используйте команду /start для начала работы.
         """
         
+        keyboard = [
+            [InlineKeyboardButton("🌐 Открыть веб-сайт", url="https://telegram-bot-kate-qbdv.vercel.app")]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
-            text=help_text
+            text=help_text,
+            reply_markup=reply_markup
         )
     
     async def handle_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -178,6 +188,13 @@ class UserHandlers:
             )])
         
         products_text += "\nВыберите продукт для покупки:"
+        
+        # Добавляем кнопку веб-версии
+        keyboard.append([InlineKeyboardButton(
+            "🌐 Открыть веб-сайт", 
+            url="https://telegram-bot-kate-qbdv.vercel.app"
+        )])
+        
         reply_markup = InlineKeyboardMarkup(keyboard)
         
         await context.bot.send_message(
@@ -228,7 +245,8 @@ class UserHandlers:
         keyboard = [
             [InlineKeyboardButton("🛒 Корзина", callback_data="shop_cart")],
             [InlineKeyboardButton("📋 Мои заказы", callback_data="shop_orders")],
-            [InlineKeyboardButton("💳 Оплатить", callback_data="shop_pay")]
+            [InlineKeyboardButton("💳 Оплатить", callback_data="shop_pay")],
+            [InlineKeyboardButton("🌐 Веб-сайт", url="https://telegram-bot-kate-qbdv.vercel.app")]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         

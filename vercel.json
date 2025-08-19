@@ -2,18 +2,21 @@
   "version": 2,
   "builds": [
     {
-      "src": "dist/**",
-      "use": "@vercel/static"
+      "src": "web-admin/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "web-admin/dist"
+      }
     }
   ],
   "rewrites": [
     {
       "source": "/admin/:path*",
-      "destination": "/dist/index.html"
+      "destination": "/index.html"
     },
     {
       "source": "/(.*)",
-      "destination": "/dist/$1"
+      "destination": "/$1"
     }
   ],
   "headers": [

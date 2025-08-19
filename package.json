@@ -1,0 +1,12 @@
+{
+  "name": "kate-bot-web",
+  "version": "1.0.0",
+  "description": "Kate Bot Web Interface",
+  "scripts": {
+    "build": "cd web-admin && npm install && npm run build",
+    "dev": "cd web-admin && npm run dev"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+} 

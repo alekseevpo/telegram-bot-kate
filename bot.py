@@ -37,6 +37,11 @@ class TelegramBot:
         self.application.add_handler(CommandHandler("start", self.user_handlers.start_command))
         self.application.add_handler(CommandHandler("help", self.user_handlers.help_command))
         
+        # Команды магазина
+        self.application.add_handler(CommandHandler("shop", self.user_handlers.shop_command))
+        self.application.add_handler(CommandHandler("cart", self.user_handlers.cart_command))
+        self.application.add_handler(CommandHandler("add", self.user_handlers.add_to_cart_command))
+        
         # Админ команды
         self.application.add_handler(CommandHandler("admin", self.admin_handlers.admin_command))
         self.application.add_handler(CommandHandler("meeting", self.admin_handlers.meeting_command))

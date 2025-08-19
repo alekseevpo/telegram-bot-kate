@@ -2,6 +2,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 from config import *
 from database import Database
+from shop import Shop, PaymentProcessor
 
 class UserHandlers:
     """Обработчики команд пользователей"""
@@ -56,6 +57,11 @@ class UserHandlers:
 
 /start - Начать работу с ботом
 /help - Показать эту справку
+
+🛒 **Магазин:**
+/shop - Каталог продуктов
+/cart - Корзина покупок
+/add <ID> [количество] - Добавить в корзину
 
 Если у вас есть вопросы, используйте команду /start для начала работы.
         """
@@ -212,6 +218,85 @@ class UserHandlers:
         """
         
         await context.bot.send_message(chat_id=chat_id, text=payment_text)
+    
+    async def shop_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Показать каталог магазина"""
+        chat_id = update.effective_chat.id
+        
+        catalog_text = self.shop.format_products_catalog()
+        
+        keyboard = [
+            [InlineKeyboardButton("🛒 Корзина", callback_data="shop_cart")],
+            [InlineKeyboardButton("📋 Мои заказы", callback_data="shop_orders")],
+            [InlineKeyboardButton("💳 Оплатить", callback_data="shop_pay")]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        
+        await context.bot.send_message(
+            chat_id=chat_id,
+            text=catalog_text,
+            reply_markup=reply_markup,
+            parse_mode='Markdown'
+        )
+    
+    async def cart_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Показать корзину"""
+        user_id = update.effective_user.id
+        chat_id = update.effective_chat.id
+        
+        cart_text = self.shop.format_cart_message(user_id)
+        
+        if self.shop.get_cart(user_id):
+            keyboard = [
+                [InlineKeyboardButton("💳 Оформить заказ", callback_data="shop_checkout")],
+                [InlineKeyboardButton("🗑️ Очистить корзину", callback_data="shop_clear_cart")],
+                [InlineKeyboardButton("🛍️ Продолжить покупки", callback_data="shop_catalog")]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+        else:
+            keyboard = [
+                [InlineKeyboardButton("🛍️ В каталог", callback_data="shop_catalog")]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+        
+        await context.bot.send_message(
+            chat_id=chat_id,
+            text=cart_text,
+            reply_markup=reply_markup,
+            parse_mode='Markdown'
+        )
+    
+    async def add_to_cart_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Добавить товар в корзину"""
+        user_id = update.effective_user.id
+        chat_id = update.effective_chat.id
+        
+        if not context.args:
+            await context.bot.send_message(
+                chat_id=chat_id,
+                text="❌ Использование: /add <ID_продукта> [количество]"
+            )
+            return
+        
+        try:
+            product_id = int(context.args[0])
+            quantity = int(context.args[1]) if len(context.args) > 1 else 1
+            
+            if self.shop.add_to_cart(user_id, product_id, quantity):
+                await context.bot.send_message(
+                    chat_id=chat_id,
+                    text=f"✅ Товар добавлен в корзину! Количество: {quantity}"
+                )
+            else:
+                await context.bot.send_message(
+                    chat_id=chat_id,
+                    text="❌ Ошибка при добавлении товара. Проверьте ID продукта."
+                )
+        except ValueError:
+            await context.bot.send_message(
+                chat_id=chat_id,
+                text="❌ Неверный формат. Используйте: /add <ID_продукта> [количество]"
+            )
 
 
 class AdminHandlers:

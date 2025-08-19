@@ -214,4 +214,95 @@ class Database:
                 return True
         except Exception as e:
             print(f"Ошибка при добавлении уведомления: {e}")
-            return False 
+            return False
+    
+    def add_order(self, order_data: dict) -> Optional[int]:
+        """Добавление заказа"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                
+                # Добавляем заказ
+                cursor.execute('''
+                    INSERT INTO orders (user_id, total_amount, status, order_date)
+                    VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+                ''', (order_data['user_id'], order_data['total_amount'], order_data['status']))
+                
+                order_id = cursor.lastrowid
+                
+                # Сохраняем детали заказа в JSON поле
+                cursor.execute('''
+                    UPDATE orders SET data = ? WHERE id = ?
+                ''', (json.dumps(order_data), order_id))
+                
+                conn.commit()
+                return order_id
+        except Exception as e:
+            print(f"Ошибка при добавлении заказа: {e}")
+            return None
+    
+    def get_order(self, order_id: int) -> Optional[Dict]:
+        """Получение заказа по ID"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute('SELECT * FROM orders WHERE id = ?', (order_id,))
+                row = cursor.fetchone()
+                
+                if row:
+                    columns = [description[0] for description in cursor.description]
+                    order_data = dict(zip(columns, row))
+                    
+                    # Парсим JSON данные
+                    if order_data.get('data'):
+                        try:
+                            order_data['data'] = json.loads(order_data['data'])
+                        except:
+                            order_data['data'] = {}
+                    
+                    return order_data
+                return None
+        except Exception as e:
+            print(f"Ошибка при получении заказа: {e}")
+            return None
+    
+    def update_order_status(self, order_id: int, status: str) -> bool:
+        """Обновление статуса заказа"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    UPDATE orders SET status = ? WHERE id = ?
+                ''', (status, order_id))
+                conn.commit()
+                return True
+        except Exception as e:
+            print(f"Ошибка при обновлении статуса заказа: {e}")
+            return False
+    
+    def get_user_orders(self, user_id: int) -> List[Dict]:
+        """Получение всех заказов пользователя"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    SELECT * FROM orders WHERE user_id = ? ORDER BY order_date DESC
+                ''', (user_id,))
+                rows = cursor.fetchall()
+                
+                columns = [description[0] for description in cursor.description]
+                orders = []
+                
+                for row in rows:
+                    order_data = dict(zip(columns, row))
+                    if order_data.get('data'):
+                        try:
+                            order_data['data'] = json.loads(order_data['data'])
+                        except:
+                            order_data['data'] = {}
+                    orders.append(order_data)
+                
+                return orders
+        except Exception as e:
+            print(f"Ошибка при получении заказов пользователя: {e}")
+            return [] 

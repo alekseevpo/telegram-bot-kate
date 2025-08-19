@@ -47,12 +47,10 @@ class Database:
                 CREATE TABLE IF NOT EXISTS orders (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     user_id INTEGER,
-                    product_id INTEGER,
-                    amount REAL,
+                    total_amount REAL,
                     status TEXT DEFAULT 'pending',
                     order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (user_id) REFERENCES users (user_id),
-                    FOREIGN KEY (product_id) REFERENCES products (product_id)
+                    data TEXT
                 )
             ''')
             

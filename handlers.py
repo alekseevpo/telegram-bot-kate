@@ -56,39 +56,6 @@ class UserHandlers:
         """Обработка команды /help"""
         await self.show_main_menu(update.effective_chat.id, context)
     
-    async def myid_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Показать ID пользователя"""
-        user = update.effective_user
-        chat_id = update.effective_chat.id
-        
-        id_text = f"""
-🆔 **Ваш Telegram ID:**
-
-👤 **Пользователь:**
-• ID: `{user.id}`
-• Имя: {user.first_name}
-• Username: @{user.username or 'Не указан'}
-• Chat ID: `{chat_id}`
-
-💡 **Как использовать:**
-• Скопируйте ID: `{user.id}`
-• Вставьте в переменную `ADMIN_ID` в Render
-• Перезапустите бота
-        """
-        
-        keyboard = [
-            [InlineKeyboardButton("🏠 Главное меню", callback_data="main_menu")],
-            [InlineKeyboardButton("❓ Помощь", callback_data="main_help")]
-        ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        
-        await context.bot.send_message(
-            chat_id=chat_id,
-            text=id_text,
-            reply_markup=reply_markup,
-            parse_mode='Markdown'
-        )
-    
     async def show_main_menu(self, chat_id: int, context: ContextTypes.DEFAULT_TYPE):
         """Показать главное меню"""
         menu_text = """

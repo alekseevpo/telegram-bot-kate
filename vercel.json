@@ -8,12 +8,26 @@
   ],
   "rewrites": [
     {
-      "source": "/admin/:path*",
+      "source": "/admin",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/admin/(.*)",
       "destination": "/index.html"
     },
     {
       "source": "/(.*)",
       "destination": "/$1"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/admin",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/admin/(.*)",
+      "dest": "/index.html"
     }
   ]
 } 

@@ -28,7 +28,7 @@ class UserHandlers:
         
         # Приветственное сообщение
         welcome_text = f"""
-🌟 Добро пожаловать, {user.first_name}!
+🌟 **Добро пожаловать, {user.first_name}!**
 
 Я бот-помощник, который поможет вам получить доступ к ценным материалам 
 и узнать больше о нашем методе работы.
@@ -40,45 +40,45 @@ class UserHandlers:
             [
                 InlineKeyboardButton("👨 Мужчина", callback_data="gender_male"),
                 InlineKeyboardButton("👩 Женщина", callback_data="gender_female")
-            ]
+            ],
+            [InlineKeyboardButton("🏠 Главное меню", callback_data="main_menu")]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         
         await context.bot.send_message(
             chat_id=chat_id,
             text=welcome_text,
-            reply_markup=reply_markup
+            reply_markup=reply_markup,
+            parse_mode='Markdown'
         )
     
     async def help_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Обработка команды /help"""
-        help_text = """
-🤖 Доступные команды:
+        await self.show_main_menu(update.effective_chat.id, context)
+    
+    async def show_main_menu(self, chat_id: int, context: ContextTypes.DEFAULT_TYPE):
+        """Показать главное меню"""
+        menu_text = """
+🤖 **Kate Bot - Ваш помощник!**
 
-/start - Начать работу с ботом
-/help - Показать эту справку
-
-🛒 **Магазин:**
-/shop - Каталог продуктов
-/cart - Корзина покупок
-/add <ID> [количество] - Добавить в корзину
-
-🌐 **Веб-версия:**
-📱 Откройте наш сайт для удобного просмотра товаров и услуг:
-🔗 https://telegram-bot-kate-qbdv.vercel.app
-
-Если у вас есть вопросы, используйте команду /start для начала работы.
+Выберите, что хотите сделать:
         """
         
         keyboard = [
-            [InlineKeyboardButton("🌐 Открыть веб-сайт", url="https://telegram-bot-kate-qbdv.vercel.app")]
+            [InlineKeyboardButton("🛒 Магазин", callback_data="main_shop")],
+            [InlineKeyboardButton("📚 Бесплатные материалы", callback_data="main_materials")],
+            [InlineKeyboardButton("📋 Мои заказы", callback_data="main_orders")],
+            [InlineKeyboardButton("👤 Мой профиль", callback_data="main_profile")],
+            [InlineKeyboardButton("🌐 Веб-сайт", url="https://telegram-bot-kate-qbdv.vercel.app")],
+            [InlineKeyboardButton("❓ Помощь", callback_data="main_help")]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         
         await context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text=help_text,
-            reply_markup=reply_markup
+            chat_id=chat_id,
+            text=menu_text,
+            reply_markup=reply_markup,
+            parse_mode='Markdown'
         )
     
     async def handle_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -127,6 +127,106 @@ class UserHandlers:
             # Обработка выбора продукта
             product_id = data.split('_')[1]
             await self.handle_product_selection(chat_id, context, product_id, user_id)
+            
+        elif data == 'main_menu':
+            # Показать главное меню
+            await self.show_main_menu(chat_id, context)
+            
+        elif data == 'main_shop':
+            # Показать магазин
+            await self.shop_command(update, context)
+            
+        elif data == 'main_materials':
+            # Показать бесплатные материалы
+            user_data = self.db.get_user(user_id)
+            if user_data and user_data.get('name'):
+                await self.send_free_materials(chat_id, context, user_data['name'])
+            else:
+                await context.bot.send_message(
+                    chat_id=chat_id,
+                    text="❌ Сначала нужно пройти регистрацию. Используйте /start"
+                )
+            
+        elif data == 'main_orders':
+            # Показать заказы пользователя
+            orders = self.db.get_user_orders(user_id)
+            if orders:
+                orders_text = "📋 **Ваши заказы:**\n\n"
+                for order in orders:
+                    orders_text += f"🆔 Заказ #{order['id']}\n"
+                    orders_text += f"📅 Дата: {order['order_date']}\n"
+                    orders_text += f"💰 Сумма: {order['total_amount']} руб.\n"
+                    orders_text += f"📊 Статус: {order['status']}\n\n"
+            else:
+                orders_text = "📋 У вас пока нет заказов."
+            
+            keyboard = [[InlineKeyboardButton("🏠 Главное меню", callback_data="main_menu")]]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            
+            await context.bot.send_message(
+                chat_id=chat_id,
+                text=orders_text,
+                reply_markup=reply_markup,
+                parse_mode='Markdown'
+            )
+            
+        elif data == 'main_profile':
+            # Показать профиль пользователя
+            user_data = self.db.get_user(user_id)
+            if user_data:
+                profile_text = f"""
+👤 **Ваш профиль:**
+
+🆔 ID: `{user_data['user_id']}`
+👤 Имя: {user_data.get('name', 'Не указано')}
+👥 Пол: {user_data.get('gender', 'Не указан')}
+📱 Телефон: {user_data.get('phone', 'Не указан')}
+📊 Этап: {user_data.get('stage', 'Не указан')}
+📅 Регистрация: {user_data.get('registration_date', 'Не указана')}
+                """
+            else:
+                profile_text = "❌ Профиль не найден."
+            
+            keyboard = [[InlineKeyboardButton("🏠 Главное меню", callback_data="main_menu")]]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            
+            await context.bot.send_message(
+                chat_id=chat_id,
+                text=profile_text,
+                reply_markup=reply_markup,
+                parse_mode='Markdown'
+            )
+            
+        elif data == 'main_help':
+            # Показать справку
+            help_text = """
+❓ **Справка по Kate Bot:**
+
+🤖 **Основные функции:**
+• Регистрация и знакомство
+• Бесплатные материалы
+• Магазин товаров и услуг
+• Личный кабинет
+• Веб-версия сайта
+
+📱 **Как использовать:**
+• Используйте кнопки для навигации
+• Всегда можно вернуться в главное меню
+• Для покупок используйте магазин
+• Вопросы? Напишите администратору
+
+🌐 **Веб-сайт:** https://telegram-bot-kate-qbdv.vercel.app
+            """
+            
+            keyboard = [[InlineKeyboardButton("🏠 Главное меню", callback_data="main_menu")]]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            
+            await context.bot.send_message(
+                chat_id=chat_id,
+                text=help_text,
+                reply_markup=reply_markup,
+                parse_mode='Markdown'
+            )
     
     async def ask_for_name(self, chat_id: int, context: ContextTypes.DEFAULT_TYPE):
         """Запрос имени пользователя"""
@@ -189,10 +289,14 @@ class UserHandlers:
         
         products_text += "\nВыберите продукт для покупки:"
         
-        # Добавляем кнопку веб-версии
+        # Добавляем кнопку веб-версии и главное меню
         keyboard.append([InlineKeyboardButton(
             "🌐 Открыть веб-сайт", 
             url="https://telegram-bot-kate-qbdv.vercel.app"
+        )])
+        keyboard.append([InlineKeyboardButton(
+            "🏠 Главное меню", 
+            callback_data="main_menu"
         )])
         
         reply_markup = InlineKeyboardMarkup(keyboard)
@@ -200,7 +304,8 @@ class UserHandlers:
         await context.bot.send_message(
             chat_id=chat_id,
             text=products_text,
-            reply_markup=reply_markup
+            reply_markup=reply_markup,
+            parse_mode='Markdown'
         )
     
     async def handle_product_selection(self, chat_id: int, context: ContextTypes.DEFAULT_TYPE, product_id: str, user_id: int):
@@ -246,7 +351,8 @@ class UserHandlers:
             [InlineKeyboardButton("🛒 Корзина", callback_data="shop_cart")],
             [InlineKeyboardButton("📋 Мои заказы", callback_data="shop_orders")],
             [InlineKeyboardButton("💳 Оплатить", callback_data="shop_pay")],
-            [InlineKeyboardButton("🌐 Веб-сайт", url="https://telegram-bot-kate-qbdv.vercel.app")]
+            [InlineKeyboardButton("🌐 Веб-сайт", url="https://telegram-bot-kate-qbdv.vercel.app")],
+            [InlineKeyboardButton("🏠 Главное меню", callback_data="main_menu")]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         
@@ -268,12 +374,14 @@ class UserHandlers:
             keyboard = [
                 [InlineKeyboardButton("💳 Оформить заказ", callback_data="shop_checkout")],
                 [InlineKeyboardButton("🗑️ Очистить корзину", callback_data="shop_clear_cart")],
-                [InlineKeyboardButton("🛍️ Продолжить покупки", callback_data="shop_catalog")]
+                [InlineKeyboardButton("🛍️ Продолжить покупки", callback_data="shop_catalog")],
+                [InlineKeyboardButton("🏠 Главное меню", callback_data="main_menu")]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
         else:
             keyboard = [
-                [InlineKeyboardButton("🛍️ В каталог", callback_data="shop_catalog")]
+                [InlineKeyboardButton("🛍️ В каталог", callback_data="shop_catalog")],
+                [InlineKeyboardButton("🏠 Главное меню", callback_data="main_menu")]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
         

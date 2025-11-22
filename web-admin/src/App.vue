@@ -14,7 +14,7 @@
 
       <v-app-bar app>
         <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
-        <v-toolbar-title>Kate Bot - Админ панель</v-toolbar-title>
+        <v-toolbar-title>Екатерина - Админ панель</v-toolbar-title>
         <v-spacer></v-spacer>
         <v-btn icon @click="logout">
           <v-icon>mdi-logout</v-icon>
@@ -22,10 +22,8 @@
       </v-app-bar>
     </template>
 
-    <v-main>
-      <v-container fluid>
-        <router-view />
-      </v-container>
+    <v-main class="pa-0">
+      <router-view />
     </v-main>
 
     <v-snackbar v-model="snackbar.show" :color="snackbar.color" :timeout="3000">

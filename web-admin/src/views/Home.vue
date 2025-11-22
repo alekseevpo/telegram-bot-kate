@@ -1,305 +1,650 @@
 <template>
-  <div>
-    <!-- Hero секция -->
-    <v-container fluid class="hero-section pa-0">
-      <v-row align="center" justify="center" class="hero-content">
-        <v-col cols="12" md="8" class="text-center">
-          <h1 class="text-h2 font-weight-bold text-white mb-4">
-            Добро пожаловать в Kate Bot
-          </h1>
-          <p class="text-h5 text-white mb-6">
-            Профессиональные услуги и качественные продукты для вашего развития
-          </p>
-          <v-btn 
-            size="x-large" 
-            color="primary" 
-            variant="flat"
-            href="https://t.me/kate202_bot"
-            target="_blank"
-            prepend-icon="mdi-telegram"
-          >
-            Начать в Telegram
-          </v-btn>
-        </v-col>
-      </v-row>
-    </v-container>
+  <div class="home-page">
+    <!-- Hero секция с градиентом и анимацией -->
+    <section class="hero-section">
+      <div class="hero-background"></div>
+      <v-container fluid class="hero-content px-4">
+        <v-row align="center" justify="center">
+          <v-col cols="12" md="10" lg="8" class="text-center">
+            <div class="hero-badge mb-6" data-aos="fade-down">
+              <v-chip color="primary" variant="flat" size="small" class="px-4">
+                🎉 Новинка: Бесплатная консультация
+              </v-chip>
+            </div>
+            
+            <h1 class="hero-title mb-6" data-aos="fade-up">
+              Екатерина - кризисный <span class="gradient-text">целитель</span>
+            </h1>
+            
+            <p class="hero-subtitle mb-8" data-aos="fade-up" data-aos-delay="100">
+              Профессиональная психологическая помощь и поддержка в трудные моменты жизни.<br/>
+              Вместе мы найдем выход из любой ситуации
+            </p>
+            
+            <div class="hero-actions" data-aos="fade-up" data-aos-delay="200">
+              <v-btn 
+                size="x-large" 
+                color="primary" 
+                variant="flat"
+                href="https://t.me/kate202_bot"
+                target="_blank"
+                class="mr-4 mb-3"
+                prepend-icon="mdi-telegram"
+              >
+                Начать в Telegram
+              </v-btn>
+              <v-btn 
+                size="x-large" 
+                variant="flat"
+                color="white"
+                class="mb-3 catalog-btn"
+                @click="scrollToProducts"
+              >
+                Смотреть каталог
+              </v-btn>
+            </div>
+            
+            <!-- Статистика -->
+            <v-row class="mt-12 stats-row" data-aos="fade-up" data-aos-delay="300">
+              <v-col cols="12" sm="4">
+                <div class="stat-item">
+                  <div class="stat-number">1000+</div>
+                  <div class="stat-label">Довольных клиентов</div>
+                </div>
+              </v-col>
+              <v-col cols="12" sm="4">
+                <div class="stat-item">
+                  <div class="stat-number">4.9/5</div>
+                  <div class="stat-label">Средняя оценка</div>
+                </div>
+              </v-col>
+              <v-col cols="12" sm="4">
+                <div class="stat-item">
+                  <div class="stat-number">24/7</div>
+                  <div class="stat-label">Поддержка</div>
+                </div>
+              </v-col>
+            </v-row>
+          </v-col>
+        </v-row>
+      </v-container>
+      
+      <!-- Плавный переход -->
+      <div class="hero-transition"></div>
+    </section>
 
     <!-- О нас -->
-    <v-container class="py-16">
-      <v-row align="center">
-        <v-col cols="12" md="6">
-          <h2 class="text-h3 font-weight-bold mb-6">О нас</h2>
-          <p class="text-body-1 text-medium-emphasis mb-4">
-            Мы специализируемся на предоставлении высококачественных услуг и продуктов, 
-            которые помогут вам достичь ваших целей и улучшить качество жизни.
-          </p>
-          <p class="text-body-1 text-medium-emphasis mb-6">
-            Наша команда экспертов готова помочь вам на каждом этапе вашего пути к успеху.
-          </p>
-          <v-btn 
-            color="primary" 
-            variant="outlined" 
-            size="large"
-            @click="scrollToProducts"
-          >
-            Наши услуги
-          </v-btn>
-        </v-col>
-        <v-col cols="12" md="6" class="text-center">
-          <v-icon size="120" color="primary" class="mb-4">mdi-robot</v-icon>
-          <div class="text-h4 font-weight-bold text-primary">Kate Bot</div>
-          <div class="text-subtitle-1 text-medium-emphasis">Ваш надежный помощник</div>
-        </v-col>
-      </v-row>
-    </v-container>
-
-    <!-- Преимущества -->
-    <v-container class="py-16 bg-grey-lighten-5">
-      <v-row class="text-center mb-12">
-        <v-col>
-          <h2 class="text-h3 font-weight-bold mb-4">Почему выбирают нас</h2>
-          <p class="text-body-1 text-medium-emphasis">
-            Мы предлагаем уникальные преимущества, которые выделяют нас среди конкурентов
-          </p>
-        </v-col>
-      </v-row>
-      
-      <v-row>
-        <v-col cols="12" md="4" class="text-center">
-          <v-icon size="64" color="primary" class="mb-4">mdi-clock-fast</v-icon>
-          <h3 class="text-h5 font-weight-bold mb-3">Быстро и качественно</h3>
-          <p class="text-body-2 text-medium-emphasis">
-            Получите результат в кратчайшие сроки без потери качества
-          </p>
-        </v-col>
-        
-        <v-col cols="12" md="4" class="text-center">
-          <v-icon size="64" color="primary" class="mb-4">mdi-account-group</v-icon>
-          <h3 class="text-h5 font-weight-bold mb-3">Персональный подход</h3>
-          <p class="text-body-2 text-medium-emphasis">
-            Индивидуальные решения для каждого клиента
-          </p>
-        </v-col>
-        
-        <v-col cols="12" md="4" class="text-center">
-          <v-icon size="64" color="primary" class="mb-4">mdi-shield-check</v-icon>
-          <h3 class="text-h5 font-weight-bold mb-3">Гарантия качества</h3>
-          <p class="text-body-2 text-medium-emphasis">
-            Мы гарантируем высокое качество всех наших услуг
-          </p>
-        </v-col>
-      </v-row>
-    </v-container>
-
-    <!-- Каталог продуктов -->
-    <v-container class="py-16" id="products">
-      <v-row class="text-center mb-12">
-        <v-col>
-          <h2 class="text-h3 font-weight-bold mb-4">Наши продукты и услуги</h2>
-          <p class="text-body-1 text-medium-emphasis">
-            Выберите то, что подходит именно вам
-          </p>
-        </v-col>
-      </v-row>
-      
-      <v-row>
-        <v-col 
-          v-for="product in products" 
-          :key="product.id" 
-          cols="12" 
-          sm="6" 
-          md="4" 
-          class="mb-6"
-        >
-          <v-card 
-            class="product-card h-100" 
-            elevation="4" 
-            hover
-          >
-            <v-card-title class="text-h6 font-weight-bold text-center pa-4">
-              {{ product.name }}
-            </v-card-title>
-            
-            <v-card-text class="text-center pa-4">
-              <p class="text-body-2 text-medium-emphasis mb-4">
-                {{ product.description }}
+    <section class="about-section py-16">
+      <v-container>
+        <v-row align="center">
+          <v-col cols="12" md="6" data-aos="fade-right">
+            <div class="about-content">
+              <span class="section-label">О ЦЕЛИТЕЛЕ</span>
+              <h2 class="section-title mb-6">
+                Помощь в преодолении<br/>жизненных кризисов
+              </h2>
+              <p class="section-text mb-4">
+                Я - Екатерина, кризисный целитель с многолетним опытом работы. 
+                Помогаю людям находить внутренние силы и ресурсы для преодоления трудных жизненных ситуаций.
+              </p>
+              <p class="section-text mb-6">
+                Мой подход сочетает современные психологические методики с глубоким пониманием 
+                человеческой природы. Я создаю безопасное пространство для вашего исцеления.
               </p>
               
-              <div class="text-h5 font-weight-bold text-primary mb-4">
-                {{ formatMoney(product.price) }}
+              <div class="feature-list mb-6">
+                <div class="feature-item">
+                  <v-icon color="success" size="small">mdi-check-circle</v-icon>
+                  <span>Конфиденциальность и безопасность</span>
+                </div>
+                <div class="feature-item">
+                  <v-icon color="success" size="small">mdi-check-circle</v-icon>
+                  <span>Индивидуальный подход</span>
+                </div>
+                <div class="feature-item">
+                  <v-icon color="success" size="small">mdi-check-circle</v-icon>
+                  <span>Поддержка 24/7</span>
+                </div>
               </div>
               
               <v-btn 
                 color="primary" 
                 variant="flat" 
-                block
-                href="https://t.me/your_bot_username"
-                target="_blank"
-                prepend-icon="mdi-cart"
+                size="large"
+                @click="scrollToProducts"
+                prepend-icon="mdi-arrow-right"
               >
-                Заказать
+                Наши услуги
               </v-btn>
-            </v-card-text>
-          </v-card>
-        </v-col>
-      </v-row>
-    </v-container>
-
-    <!-- Как это работает -->
-    <v-container class="py-16 bg-grey-lighten-5">
-      <v-row class="text-center mb-12">
-        <v-col>
-          <h2 class="text-h3 font-weight-bold mb-4">Как это работает</h2>
-          <p class="text-body-1 text-medium-emphasis">
-            Простой процесс получения наших услуг
-          </p>
-        </v-col>
-      </v-row>
-      
-      <v-row>
-        <v-col cols="12" md="3" class="text-center">
-          <div class="step-circle mb-4">1</div>
-          <h3 class="text-h6 font-weight-bold mb-3">Напишите боту</h3>
-          <p class="text-body-2 text-medium-emphasis">
-            Отправьте сообщение в Telegram бот
-          </p>
-        </v-col>
-        
-        <v-col cols="12" md="3" class="text-center">
-          <div class="step-circle mb-4">2</div>
-          <h3 class="text-h6 font-weight-bold mb-3">Выберите услугу</h3>
-          <p class="text-body-2 text-medium-emphasis">
-            Изучите каталог и выберите нужную услугу
-          </p>
-        </v-col>
-        
-        <v-col cols="12" md="3" class="text-center">
-          <div class="step-circle mb-4">3</div>
-          <h3 class="text-h6 font-weight-bold mb-3">Оплатите</h3>
-          <p class="text-body-2 text-medium-emphasis">
-            Безопасная оплата картой или другими способами
-          </p>
-        </v-col>
-        
-        <v-col cols="12" md="3" class="text-center">
-          <div class="step-circle mb-4">4</div>
-          <h3 class="text-h6 font-weight-bold mb-3">Получите результат</h3>
-          <p class="text-body-2 text-medium-emphasis">
-            Быстрое получение заказанной услуги
-          </p>
-        </v-col>
-      </v-row>
-    </v-container>
-
-    <!-- Контакты -->
-    <v-container class="py-16">
-      <v-row align="center">
-        <v-col cols="12" md="6">
-          <h2 class="text-h3 font-weight-bold mb-6">Свяжитесь с нами</h2>
-          <p class="text-body-1 text-medium-emphasis mb-4">
-            У вас есть вопросы? Мы готовы помочь!
-          </p>
-          
-          <div class="d-flex align-center mb-4">
-            <v-icon color="primary" class="mr-3">mdi-telegram</v-icon>
-            <span class="text-body-1">@kate202_bot</span>
-          </div>
-          
-          <div class="d-flex align-center mb-4">
-            <v-icon color="primary" class="mr-3">mdi-email</v-icon>
-            <span class="text-body-1">info@katebot.com</span>
-          </div>
-          
-          <div class="d-flex align-center mb-6">
-            <v-icon color="primary" class="mr-3">mdi-clock</v-icon>
-            <span class="text-body-1">24/7 поддержка</span>
-          </div>
-          
-          <v-btn 
-            color="primary" 
-            variant="flat" 
-            size="large"
-            href="https://t.me/kate202_bot"
-            target="_blank"
-            prepend-icon="mdi-telegram"
-          >
-            Написать в Telegram
-          </v-btn>
-        </v-col>
-        
-        <v-col cols="12" md="6" class="text-center">
-          <v-icon size="120" color="primary" class="mb-4">mdi-message-text</v-icon>
-          <div class="text-h4 font-weight-bold text-primary">Готовы помочь</div>
-          <div class="text-subtitle-1 text-medium-emphasis">Ответим на все ваши вопросы</div>
-        </v-col>
-      </v-row>
-    </v-container>
-
-    <!-- Футер с скрытой ссылкой на админку -->
-    <v-footer class="bg-grey-darken-4 text-white">
-      <v-container>
-        <v-row align="center" justify="space-between">
-          <v-col cols="12" md="6">
-            <div class="text-body-2">
-              © 2025 Kate Bot. Все права защищены.
             </div>
           </v-col>
           
-          <v-col cols="12" md="6" class="text-right">
-            <a 
-              href="/admin" 
-              class="text-caption text-grey-lighten-1 text-decoration-none"
-              style="font-size: 10px; opacity: 0.3;"
-            >
-              Админ панель
-            </a>
+          <v-col cols="12" md="6" class="text-center" data-aos="fade-left">
+            <div class="about-image-wrapper">
+              <div class="floating-card floating-card-1">
+                <v-icon size="40" color="primary">mdi-lightning-bolt</v-icon>
+                <div class="floating-card-text">Быстро</div>
+              </div>
+              <div class="floating-card floating-card-2">
+                <v-icon size="40" color="secondary">mdi-shield-check</v-icon>
+                <div class="floating-card-text">Надежно</div>
+              </div>
+              <div class="floating-card floating-card-3">
+                <v-icon size="40" color="accent">mdi-star</v-icon>
+                <div class="floating-card-text">Качественно</div>
+              </div>
+              <v-icon size="200" color="primary" class="main-icon">mdi-hands-pray</v-icon>
+            </div>
           </v-col>
         </v-row>
       </v-container>
-    </v-footer>
+    </section>
+
+    <!-- Преимущества -->
+    <section class="features-section py-16">
+      <v-container>
+        <div class="text-center mb-12" data-aos="fade-up">
+          <span class="section-label">ПРЕИМУЩЕСТВА</span>
+          <h2 class="section-title mb-4">Почему выбирают меня</h2>
+          <p class="section-subtitle">
+            Профессиональная помощь с заботой о каждом клиенте
+          </p>
+        </div>
+        
+        <v-row>
+          <v-col 
+            v-for="(feature, index) in features" 
+            :key="index"
+            cols="12" 
+            md="4" 
+            data-aos="fade-up"
+            :data-aos-delay="index * 100"
+          >
+            <v-card class="feature-card h-100" hover>
+              <v-card-text class="pa-8 text-center">
+                <div class="feature-icon-wrapper mb-4">
+                  <v-icon :color="feature.color" size="48">{{ feature.icon }}</v-icon>
+                </div>
+                <h3 class="text-h5 font-weight-bold mb-3">{{ feature.title }}</h3>
+                <p class="text-body-2 text-medium-emphasis">
+                  {{ feature.description }}
+                </p>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
+      </v-container>
+    </section>
+
+    <!-- Каталог продуктов -->
+    <section class="products-section py-16" id="products">
+      <v-container>
+        <div class="text-center mb-12" data-aos="fade-up">
+          <span class="section-label">УСЛУГИ</span>
+          <h2 class="section-title mb-4">Мои услуги и программы</h2>
+          <p class="section-subtitle">
+            Выберите формат работы, который подходит именно вам
+          </p>
+        </div>
+        
+        <v-row v-if="products.length > 0">
+          <v-col 
+            v-for="(product, index) in products" 
+            :key="product.id" 
+            cols="12" 
+            sm="6" 
+            lg="3"
+            data-aos="fade-up"
+            :data-aos-delay="index * 100"
+          >
+            <v-card 
+              class="product-card h-100" 
+              hover
+            >
+              <!-- Иконка продукта -->
+              <div class="product-icon-wrapper">
+                <v-icon size="60" color="primary">{{ getProductIcon(index) }}</v-icon>
+              </div>
+              
+              <v-card-title class="text-h6 font-weight-bold text-center px-4 pt-4 pb-2">
+                {{ product.name }}
+              </v-card-title>
+              
+              <v-card-text class="text-center px-4 pb-4">
+                <p class="product-description text-body-2 mb-4">
+                  {{ product.description }}
+                </p>
+                
+                <div class="product-price mb-4">
+                  <span class="price-amount">{{ formatMoney(product.price) }}</span>
+                </div>
+                
+                <v-btn 
+                  color="primary" 
+                  variant="flat" 
+                  block
+                  @click="$router.push(`/product/${product.id}`)"
+                  prepend-icon="mdi-information"
+                  size="large"
+                  class="mb-2"
+                >
+                  Подробнее
+                </v-btn>
+                
+                <v-btn 
+                  color="primary" 
+                  variant="outlined" 
+                  block
+                  href="https://t.me/kate202_bot"
+                  target="_blank"
+                  prepend-icon="mdi-cart-outline"
+                  size="large"
+                >
+                  Заказать
+                </v-btn>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
+        
+        <!-- Загрузка -->
+        <div v-else class="text-center py-8" data-aos="fade-up">
+          <v-progress-circular indeterminate color="primary"></v-progress-circular>
+          <p class="mt-4 text-medium-emphasis">Загрузка продуктов...</p>
+        </div>
+      </v-container>
+    </section>
+
+    <!-- Отзывы -->
+    <section class="testimonials-section py-16">
+      <v-container>
+        <div class="text-center mb-12" data-aos="fade-up">
+          <span class="section-label">ОТЗЫВЫ</span>
+          <h2 class="section-title mb-4">Отзывы моих клиентов</h2>
+          <p class="section-subtitle">
+            Реальные истории людей, которым я помогла
+          </p>
+        </div>
+        
+        <v-row>
+          <v-col 
+            v-for="(testimonial, index) in testimonials" 
+            :key="index"
+            cols="12" 
+            md="4"
+            data-aos="fade-up"
+            :data-aos-delay="index * 100"
+          >
+            <v-card class="testimonial-card h-100">
+              <v-card-text class="pa-6">
+                <div class="rating mb-3">
+                  <v-icon 
+                    v-for="i in 5" 
+                    :key="i" 
+                    size="small" 
+                    color="warning"
+                  >
+                    mdi-star
+                  </v-icon>
+                </div>
+                <p class="testimonial-text mb-4">
+                  "{{ testimonial.text }}"
+                </p>
+                <div class="testimonial-author">
+                  <div class="author-avatar">
+                    {{ testimonial.name.charAt(0) }}
+                  </div>
+                  <div>
+                    <div class="author-name">{{ testimonial.name }}</div>
+                    <div class="author-role">{{ testimonial.role }}</div>
+                  </div>
+                </div>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
+      </v-container>
+    </section>
+
+    <!-- Как это работает -->
+    <section class="process-section py-16">
+      <v-container>
+        <div class="text-center mb-12" data-aos="fade-up">
+          <span class="section-label">ПРОЦЕСС</span>
+          <h2 class="section-title mb-4">Как проходит работа</h2>
+          <p class="section-subtitle">
+            Простой и комфортный процесс начала нашего сотрудничества
+          </p>
+        </div>
+        
+        <v-row class="process-steps">
+          <v-col 
+            v-for="(step, index) in steps" 
+            :key="index"
+            cols="12" 
+            sm="6" 
+            lg="3"
+            data-aos="zoom-in"
+            :data-aos-delay="index * 100"
+          >
+            <div class="process-step">
+              <div class="step-number">{{ index + 1 }}</div>
+              <div class="step-icon">
+                <v-icon size="40" color="primary">{{ step.icon }}</v-icon>
+              </div>
+              <h3 class="step-title">{{ step.title }}</h3>
+              <p class="step-description">{{ step.description }}</p>
+            </div>
+            <div v-if="index < steps.length - 1" class="step-connector"></div>
+          </v-col>
+        </v-row>
+      </v-container>
+    </section>
+
+    <!-- CTA секция -->
+    <section class="cta-section py-16">
+      <v-container>
+        <v-card class="cta-card" elevation="0" data-aos="zoom-in">
+          <v-card-text class="pa-12 text-center">
+            <h2 class="section-title text-white mb-4">
+              Готовы начать?
+            </h2>
+            <p class="cta-subtitle text-white mb-8">
+              Присоединяйтесь к тысячам довольных клиентов уже сегодня
+            </p>
+            <v-btn 
+              size="x-large" 
+              color="white" 
+              variant="flat"
+              href="https://t.me/kate202_bot"
+              target="_blank"
+              prepend-icon="mdi-telegram"
+            >
+              Начать в Telegram
+            </v-btn>
+          </v-card-text>
+        </v-card>
+      </v-container>
+    </section>
+
+    <!-- Контакты -->
+    <section class="contact-section py-16">
+      <v-container>
+        <v-row align="center">
+          <v-col cols="12" md="6" data-aos="fade-right">
+            <span class="section-label">КОНТАКТЫ</span>
+            <h2 class="section-title mb-6">Свяжитесь со мной</h2>
+            <p class="section-text mb-6">
+              Готовы начать путь к изменениям? Я здесь, чтобы помочь!<br/>
+              Свяжитесь со мной удобным для вас способом.
+            </p>
+            
+            <div class="contact-info mb-8">
+              <div class="contact-item">
+                <div class="contact-icon">
+                  <v-icon color="primary">mdi-telegram</v-icon>
+                </div>
+                <div>
+                  <div class="contact-label">Telegram</div>
+                  <div class="contact-value">@kate202_bot</div>
+                </div>
+              </div>
+              
+              <div class="contact-item">
+                <div class="contact-icon">
+                  <v-icon color="primary">mdi-email</v-icon>
+                </div>
+                <div>
+                  <div class="contact-label">Email</div>
+                  <div class="contact-value">info@katebot.com</div>
+                </div>
+              </div>
+              
+              <div class="contact-item">
+                <div class="contact-icon">
+                  <v-icon color="primary">mdi-clock</v-icon>
+                </div>
+                <div>
+                  <div class="contact-label">Режим работы</div>
+                  <div class="contact-value">24/7 поддержка</div>
+                </div>
+              </div>
+            </div>
+            
+            <v-btn 
+              color="primary" 
+              variant="flat" 
+              size="x-large"
+              href="https://t.me/kate202_bot"
+              target="_blank"
+              prepend-icon="mdi-send"
+            >
+              Написать сообщение
+            </v-btn>
+          </v-col>
+          
+          <v-col cols="12" md="6" data-aos="fade-left">
+            <v-card class="contact-card pa-8" elevation="4">
+              <h3 class="text-h5 font-weight-bold mb-6">Быстрая связь</h3>
+              <v-form @submit.prevent="sendQuickMessage">
+                <v-text-field
+                  v-model="quickForm.name"
+                  label="Ваше имя"
+                  variant="outlined"
+                  prepend-inner-icon="mdi-account"
+                  class="mb-4"
+                ></v-text-field>
+                
+                <v-text-field
+                  v-model="quickForm.email"
+                  label="Email"
+                  type="email"
+                  variant="outlined"
+                  prepend-inner-icon="mdi-email"
+                  class="mb-4"
+                ></v-text-field>
+                
+                <v-textarea
+                  v-model="quickForm.message"
+                  label="Ваше сообщение"
+                  variant="outlined"
+                  prepend-inner-icon="mdi-message-text"
+                  rows="4"
+                  class="mb-4"
+                ></v-textarea>
+                
+                <v-btn 
+                  type="submit"
+                  color="primary" 
+                  variant="flat" 
+                  size="large"
+                  block
+                  prepend-icon="mdi-send"
+                >
+                  Отправить
+                </v-btn>
+              </v-form>
+            </v-card>
+          </v-col>
+        </v-row>
+      </v-container>
+    </section>
+
+    <!-- Футер -->
+    <footer class="footer-section">
+      <v-container>
+        <v-row class="py-12">
+          <v-col cols="12" md="4" class="mb-6">
+            <div class="footer-brand mb-4">
+              <v-icon size="40" color="primary">mdi-heart-pulse</v-icon>
+              <span class="footer-logo">Екатерина</span>
+            </div>
+            <p class="footer-description">
+              Кризисный целитель. Профессиональная психологическая помощь 
+              и поддержка в трудные моменты жизни. С заботой о каждом.
+            </p>
+          </v-col>
+          
+          <v-col cols="12" sm="6" md="2" class="mb-6">
+            <h4 class="footer-title mb-4">Продукты</h4>
+            <ul class="footer-links">
+              <li><a href="#products" @click.prevent="scrollToProducts">Каталог</a></li>
+              <li><a href="#products">Курсы</a></li>
+              <li><a href="#products">Консультации</a></li>
+            </ul>
+          </v-col>
+          
+          <v-col cols="12" sm="6" md="2" class="mb-6">
+            <h4 class="footer-title mb-4">Компания</h4>
+            <ul class="footer-links">
+              <li><a href="#about">О нас</a></li>
+              <li><a href="#contact">Контакты</a></li>
+              <li><a href="/admin" style="opacity: 0.3;">Админ</a></li>
+            </ul>
+          </v-col>
+          
+          <v-col cols="12" sm="6" md="2" class="mb-6">
+            <h4 class="footer-title mb-4">Поддержка</h4>
+            <ul class="footer-links">
+              <li><a href="https://t.me/kate202_bot" target="_blank">FAQ</a></li>
+              <li><a href="https://t.me/kate202_bot" target="_blank">Помощь</a></li>
+            </ul>
+          </v-col>
+          
+          <v-col cols="12" sm="6" md="2" class="mb-6">
+            <h4 class="footer-title mb-4">Соц. сети</h4>
+            <div class="footer-social">
+              <v-btn icon variant="text" size="small" href="https://t.me/kate202_bot" target="_blank">
+                <v-icon>mdi-telegram</v-icon>
+              </v-btn>
+            </div>
+          </v-col>
+        </v-row>
+        
+        <v-divider class="my-4"></v-divider>
+        
+        <div class="footer-bottom py-4 text-center">
+          <p class="text-medium-emphasis mb-0">
+            © 2025 Екатерина - кризисный целитель. Все права защищены.
+          </p>
+        </div>
+      </v-container>
+    </footer>
   </div>
 </template>
 
 <script>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, inject } from 'vue'
 import { apiService } from '../services/api.js'
+import AOS from 'aos'
+import 'aos/dist/aos.css'
 
 export default {
   name: 'Home',
   setup() {
     const products = ref([])
+    const quickForm = ref({
+      name: '',
+      email: '',
+      message: ''
+    })
+    const showSnackbar = inject('showSnackbar', null)
+
+    // Преимущества
+    const features = ref([
+      {
+        icon: 'mdi-shield-lock',
+        color: 'primary',
+        title: 'Конфиденциальность',
+        description: 'Полная конфиденциальность и безопасность ваших личных данных и переживаний'
+      },
+      {
+        icon: 'mdi-heart-pulse',
+        color: 'secondary',
+        title: 'Эмпатия и забота',
+        description: 'Глубокое понимание и поддержка в самые трудные моменты жизни'
+      },
+      {
+        icon: 'mdi-certificate',
+        color: 'accent',
+        title: 'Проверенные методы',
+        description: 'Использую эффективные техники, подтвержденные многолетней практикой'
+      }
+    ])
+
+    // Отзывы
+    const testimonials = ref([
+      {
+        name: 'Анна С.',
+        role: 'Москва',
+        text: 'Екатерина помогла мне пережить один из самых тяжелых периодов в жизни. Ее поддержка и профессионализм были бесценны. Благодарю от всего сердца!'
+      },
+      {
+        name: 'Дмитрий К.',
+        role: 'Санкт-Петербург',
+        text: 'После развода я не знал, как жить дальше. Работа с Екатериной помогла мне найти внутренние силы и начать новую жизнь. Рекомендую!'
+      },
+      {
+        name: 'Мария П.',
+        role: 'Казань',
+        text: 'Деликатный подход, глубокое понимание и реальная помощь. Екатерина - настоящий профессионал своего дела.'
+      }
+    ])
+
+    // Шаги процесса
+    const steps = ref([
+      {
+        icon: 'mdi-message-text',
+        title: 'Первый контакт',
+        description: 'Напишите мне в Telegram и расскажите о вашей ситуации'
+      },
+      {
+        icon: 'mdi-calendar-clock',
+        title: 'Согласование',
+        description: 'Выберем удобное время и формат работы'
+      },
+      {
+        icon: 'mdi-hand-heart',
+        title: 'Работа',
+        description: 'Начинаем совместный путь к вашему исцелению'
+      },
+      {
+        icon: 'mdi-emoticon-happy',
+        title: 'Результат',
+        description: 'Вы обретаете внутреннюю гармонию и силы'
+      }
+    ])
 
     const loadProducts = async () => {
       try {
-        // Загружаем продукты через API сервис
         products.value = await apiService.getPublicProducts()
       } catch (error) {
         console.error('Ошибка загрузки продуктов:', error)
-        // Если API недоступен, показываем демо продукты
+        // Демо продукты
         products.value = [
           {
             id: 1,
-            name: 'Базовый курс',
-            description: 'Полный курс по основам метода работы. Идеально для начинающих.',
-            price: 5000
-          },
-          {
-            id: 2,
-            name: 'Продвинутый курс',
-            description: 'Углубленное изучение продвинутых техник для опытных пользователей.',
-            price: 10000
-          },
-          {
-            id: 3,
-            name: 'Индивидуальная консультация',
-            description: 'Персональная консультация 1-на-1 с экспертом.',
+            name: 'Базовая консультация',
+            description: 'Первичная встреча для знакомства и определения запроса. Длительность 60 минут.',
             price: 3000
           },
           {
+            id: 2,
+            name: 'Курс "Преодоление кризиса"',
+            description: 'Программа из 8 сессий для работы с кризисными состояниями и поиска внутренних ресурсов.',
+            price: 20000
+          },
+          {
+            id: 3,
+            name: 'Индивидуальная сессия',
+            description: 'Глубокая терапевтическая сессия продолжительностью 90 минут.',
+            price: 5000
+          },
+          {
             id: 4,
-            name: 'Групповой мастер-класс',
-            description: 'Участие в групповом мастер-классе с другими участниками.',
-            price: 1500
+            name: 'Групповая практика',
+            description: 'Участие в групповой целительской практике. Поддержка единомышленников.',
+            price: 2000
           }
         ]
       }
@@ -308,64 +653,843 @@ export default {
     const formatMoney = (amount) => {
       return new Intl.NumberFormat('ru-RU', {
         style: 'currency',
-        currency: 'RUB'
+        currency: 'RUB',
+        minimumFractionDigits: 0
       }).format(amount)
     }
 
+    const getProductIcon = (index) => {
+      const icons = ['mdi-chat-outline', 'mdi-book-open-page-variant', 'mdi-account-heart', 'mdi-account-group']
+      return icons[index % icons.length]
+    }
+
     const scrollToProducts = () => {
-      document.getElementById('products').scrollIntoView({ 
-        behavior: 'smooth' 
-      })
+      const element = document.getElementById('products')
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' })
+      }
+    }
+
+    const sendQuickMessage = () => {
+      if (!quickForm.value.name || !quickForm.value.email || !quickForm.value.message) {
+        if (showSnackbar) {
+          showSnackbar('Пожалуйста, заполните все поля', 'error')
+        } else {
+          alert('Пожалуйста, заполните все поля')
+        }
+        return
+      }
+
+      // Открываем Telegram бот с предзаполненным сообщением
+      const message = `Имя: ${quickForm.value.name}\nEmail: ${quickForm.value.email}\nСообщение: ${quickForm.value.message}`
+      const encodedMessage = encodeURIComponent(message)
+      window.open(`https://t.me/kate202_bot?start=${encodedMessage}`, '_blank')
+      
+      // Очищаем форму
+      quickForm.value = { name: '', email: '', message: '' }
+      
+      if (showSnackbar) {
+        showSnackbar('Сообщение отправлено!', 'success')
+      }
     }
 
     onMounted(() => {
       loadProducts()
+      // Инициализация AOS для анимаций
+      AOS.init({
+        duration: 800,
+        once: true,
+        offset: 100
+      })
     })
 
     return {
       products,
+      features,
+      testimonials,
+      steps,
+      quickForm,
       formatMoney,
-      scrollToProducts
+      getProductIcon,
+      scrollToProducts,
+      sendQuickMessage
     }
   }
 }
 </script>
 
 <style scoped>
+/* ============================================
+   ОБЩИЕ СТИЛИ
+   ============================================ */
+.home-page {
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+/* Лейблы секций */
+.section-label {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, rgb(var(--v-theme-primary)), rgb(var(--v-theme-secondary)));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 1rem;
+}
+
+/* Заголовки секций */
+.section-title {
+  font-size: 3rem;
+  font-weight: 800;
+  line-height: 1.15;
+  color: #1f2937;
+  letter-spacing: -0.02em;
+}
+
+.section-subtitle {
+  font-size: 1.125rem;
+  color: #6b7280;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.section-text {
+  font-size: 1rem;
+  line-height: 1.75;
+  color: #4b5563;
+}
+
+/* ============================================
+   HERO СЕКЦИЯ
+   ============================================ */
 .hero-section {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  min-height: 80vh;
+  position: relative;
+  min-height: 100vh;
   display: flex;
   align-items: center;
+  overflow: hidden;
+}
+
+.hero-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  z-index: 0;
+}
+
+.hero-background::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(236, 72, 153, 0.1) 0%, transparent 50%);
+  animation: pulse 8s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
 .hero-content {
-  min-height: 80vh;
+  position: relative;
+  z-index: 2;
+  padding-top: 80px;
+  padding-bottom: 80px;
 }
 
-.step-circle {
-  width: 60px;
-  height: 60px;
+.hero-badge {
+  animation: float 3s ease-in-out infinite;
+}
+
+.hero-badge .v-chip {
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.2) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.hero-title {
+  font-size: 4rem;
+  font-weight: 900;
+  line-height: 1.1;
+  color: white;
+  letter-spacing: -0.02em;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #ec4899 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradient-shift 3s ease infinite;
+  background-size: 200% auto;
+}
+
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% center; }
+  50% { background-position: 100% center; }
+}
+
+.hero-subtitle {
+  font-size: 1.375rem;
+  color: rgba(255, 255, 255, 0.95);
+  line-height: 1.8;
+  font-weight: 400;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.catalog-btn {
+  background: rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.4) !important;
+  color: white !important;
+  font-weight: 600 !important;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.catalog-btn:hover {
+  background: rgba(255, 255, 255, 0.25) !important;
+  border-color: rgba(255, 255, 255, 0.6) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+}
+
+.stats-row {
+  margin-top: 4rem;
+}
+
+.stat-item {
+  padding: 2rem 1rem;
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.stat-item:hover {
+  transform: translateY(-5px);
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.stat-number {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 0.5rem;
+}
+
+.stat-label {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.hero-transition {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 150px;
+  background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.1) 30%, rgba(255, 255, 255, 0.5) 60%, #ffffff);
+  z-index: 1;
+}
+
+@media (max-width: 960px) {
+  .hero-transition {
+    height: 100px;
+  }
+}
+
+@media (max-width: 600px) {
+  .hero-transition {
+    height: 80px;
+  }
+}
+
+/* ============================================
+   О НАС СЕКЦИЯ
+   ============================================ */
+.about-section {
+  background: #ffffff;
+}
+
+.about-content {
+  padding: 2rem 0;
+}
+
+.feature-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1rem;
+  color: #374151;
+}
+
+.about-image-wrapper {
+  position: relative;
+  height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.main-icon {
+  opacity: 0.1;
+}
+
+.floating-card {
+  position: absolute;
+  background: white;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  animation: float 3s ease-in-out infinite;
+}
+
+.floating-card-1 {
+  top: 10%;
+  left: 10%;
+  animation-delay: 0s;
+}
+
+.floating-card-2 {
+  top: 50%;
+  right: 10%;
+  animation-delay: 1s;
+}
+
+.floating-card-3 {
+  bottom: 15%;
+  left: 15%;
+  animation-delay: 2s;
+}
+
+.floating-card-text {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #1f2937;
+}
+
+/* ============================================
+   ПРЕИМУЩЕСТВА
+   ============================================ */
+.features-section {
+  background: #f9fafb;
+}
+
+.feature-card {
+  border: 1px solid #e5e7eb;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  height: 100%;
+  background: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(to right, rgb(var(--v-theme-primary)), rgb(var(--v-theme-secondary)));
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15) !important;
+  border-color: rgba(var(--v-theme-primary), 0.3);
+}
+
+.feature-card:hover::before {
+  transform: scaleX(1);
+}
+
+.feature-icon-wrapper {
+  width: 90px;
+  height: 90px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(var(--v-theme-primary), 0.1), rgba(var(--v-theme-secondary), 0.05));
+  border-radius: 1.5rem;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.feature-card:hover .feature-icon-wrapper {
+  transform: scale(1.1) rotate(5deg);
+  background: linear-gradient(135deg, rgba(var(--v-theme-primary), 0.15), rgba(var(--v-theme-secondary), 0.1));
+}
+
+/* ============================================
+   ПРОДУКТЫ
+   ============================================ */
+.products-section {
+  background: #ffffff;
+}
+
+.product-card {
+  border: 2px solid #f3f4f6;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  background: white;
+  position: relative;
+}
+
+.product-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 2px;
+  background: linear-gradient(135deg, rgb(var(--v-theme-primary)), rgb(var(--v-theme-secondary)), rgb(var(--v-theme-accent)));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.product-card:hover {
+  transform: translateY(-12px) scale(1.02);
+  box-shadow: 0 25px 50px rgba(99, 102, 241, 0.25) !important;
+  border-color: transparent;
+}
+
+.product-card:hover::after {
+  opacity: 1;
+}
+
+.product-icon-wrapper {
+  background: linear-gradient(135deg, rgba(var(--v-theme-primary), 0.08), rgba(var(--v-theme-secondary), 0.08));
+  padding: 3rem 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 180px;
+  position: relative;
+  overflow: hidden;
+}
+
+.product-icon-wrapper::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+  animation: rotate 20s linear infinite;
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.product-card:hover .product-icon-wrapper {
+  background: linear-gradient(135deg, rgba(var(--v-theme-primary), 0.12), rgba(var(--v-theme-secondary), 0.12));
+}
+
+.product-description {
+  min-height: 60px;
+  color: #6b7280;
+}
+
+.product-price {
+  position: relative;
+}
+
+.price-amount {
+  font-size: 2.25rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, rgb(var(--v-theme-primary)), rgb(var(--v-theme-secondary)));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.02em;
+}
+
+/* ============================================
+   ОТЗЫВЫ
+   ============================================ */
+.testimonials-section {
+  background: #f9fafb;
+}
+
+.testimonial-card {
+  border: 1px solid #e5e7eb;
+  transition: all 0.4s ease;
+  background: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.testimonial-card::before {
+  content: '"';
+  position: absolute;
+  top: 10px;
+  left: 20px;
+  font-size: 80px;
+  font-weight: 700;
+  color: rgba(var(--v-theme-primary), 0.05);
+  font-family: Georgia, serif;
+  line-height: 1;
+}
+
+.testimonial-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.12) !important;
+  border-color: rgba(var(--v-theme-primary), 0.2);
+}
+
+.rating {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.testimonial-text {
+  font-size: 1rem;
+  line-height: 1.75;
+  color: #374151;
+  font-style: italic;
+}
+
+.testimonial-author {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.author-avatar {
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, rgb(var(--v-theme-primary)), rgb(var(--v-theme-secondary)));
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
-  font-weight: bold;
-  margin: 0 auto;
+  font-size: 1.25rem;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(var(--v-theme-primary), 0.3);
+  position: relative;
 }
 
-.product-card {
-  transition: transform 0.3s ease;
+.author-avatar::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgb(var(--v-theme-primary)), rgb(var(--v-theme-secondary)));
+  opacity: 0.2;
+  filter: blur(8px);
 }
 
-.product-card:hover {
-  transform: translateY(-5px);
+.author-name {
+  font-weight: 600;
+  color: #1f2937;
 }
 
-.text-decoration-none {
+.author-role {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+/* ============================================
+   ПРОЦЕСС
+   ============================================ */
+.process-section {
+  background: #ffffff;
+}
+
+.process-steps {
+  position: relative;
+}
+
+.process-step {
+  text-align: center;
+  position: relative;
+  z-index: 2;
+}
+
+.step-number {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgb(var(--v-theme-primary)), rgb(var(--v-theme-secondary)));
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 auto 1rem;
+  position: relative;
+  z-index: 2;
+}
+
+.step-icon {
+  background: rgba(var(--v-theme-primary), 0.1);
+  width: 80px;
+  height: 80px;
+  border-radius: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+}
+
+.step-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.5rem;
+}
+
+.step-description {
+  font-size: 0.875rem;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.step-connector {
+  position: absolute;
+  top: 25px;
+  left: 50%;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(to right, rgb(var(--v-theme-primary)), transparent);
+  z-index: 1;
+}
+
+/* ============================================
+   CTA СЕКЦИЯ
+   ============================================ */
+.cta-section {
+  background: #ffffff;
+}
+
+.cta-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 2rem !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.cta-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  animation: rotate 20s linear infinite;
+}
+
+.cta-subtitle {
+  font-size: 1.25rem;
+  opacity: 0.95;
+}
+
+/* ============================================
+   КОНТАКТЫ
+   ============================================ */
+.contact-section {
+  background: #f9fafb;
+}
+
+.contact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.contact-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.contact-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 0.75rem;
+  background: rgba(var(--v-theme-primary), 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.contact-label {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 0.25rem;
+}
+
+.contact-value {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.contact-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  transition: all 0.3s ease;
+}
+
+.contact-card:hover {
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1) !important;
+  border-color: rgba(var(--v-theme-primary), 0.2);
+}
+
+/* ============================================
+   ФУТЕР
+   ============================================ */
+.footer-section {
+  background: #1f2937;
+  color: #e5e7eb;
+}
+
+.footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.footer-logo {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+}
+
+.footer-description {
+  color: #9ca3af;
+  line-height: 1.75;
+}
+
+.footer-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 1rem;
+}
+
+.footer-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.footer-links a {
+  color: #9ca3af;
   text-decoration: none;
+  transition: color 0.3s;
+}
+
+.footer-links a:hover {
+  color: white;
+}
+
+.footer-social {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.footer-bottom {
+  color: #9ca3af;
+}
+
+/* ============================================
+   АДАПТИВНОСТЬ
+   ============================================ */
+@media (max-width: 960px) {
+  .hero-title {
+    font-size: 2.5rem;
+  }
+  
+  .section-title {
+    font-size: 2rem;
+  }
+  
+  .about-image-wrapper {
+    height: 300px;
+  }
+  
+  .step-connector {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .hero-title {
+    font-size: 2rem;
+  }
+  
+  .hero-subtitle {
+    font-size: 1rem;
+  }
+  
+  .section-title {
+    font-size: 1.75rem;
+  }
+  
+  .hero-actions {
+    flex-direction: column;
+  }
+  
+  .hero-actions .v-btn {
+    width: 100%;
+  }
 }
 </style> 

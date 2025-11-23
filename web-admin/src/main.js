@@ -15,22 +15,22 @@ const vuetify = createVuetify({
     themes: {
       light: {
         colors: {
-          primary: '#6366F1',      // Современный индиго
-          secondary: '#8B5CF6',    // Фиолетовый
-          accent: '#EC4899',       // Розовый акцент
+          primary: '#8B5FBF',      // Теплый фиолетовый
+          secondary: '#D4A5D4',    // Нежный розово-фиолетовый
+          accent: '#FFA07A',       // Теплый лососевый
           error: '#EF4444',
-          info: '#3B82F6',
-          success: '#10B981',
-          warning: '#F59E0B',
+          info: '#7EC8E3',
+          success: '#81C784',
+          warning: '#FFB74D',
           background: '#FFFFFF',
-          surface: '#F9FAFB',
+          surface: '#FAF9F6',
         }
       },
       dark: {
         colors: {
-          primary: '#818CF8',
-          secondary: '#A78BFA',
-          accent: '#F472B6',
+          primary: '#A78BFA',
+          secondary: '#D4A5D4',
+          accent: '#FFA07A',
           background: '#111827',
           surface: '#1F2937',
         }
@@ -39,12 +39,13 @@ const vuetify = createVuetify({
   },
   defaults: {
     VBtn: {
-      rounded: 'lg',
+      rounded: 'xl',
       elevation: 0,
+      style: 'text-transform: none; letter-spacing: 0.5px;',
     },
     VCard: {
-      rounded: 'lg',
-      elevation: 2,
+      rounded: 'xl',
+      elevation: 0,
     },
   }
 })

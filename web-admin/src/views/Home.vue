@@ -28,7 +28,7 @@
                 variant="flat"
                 href="https://t.me/kate202_bot"
                 target="_blank"
-                class="mr-4 mb-3"
+                class="mr-4 mb-3 telegram-btn"
                 prepend-icon="mdi-telegram"
               >
                 Начать в Telegram
@@ -74,14 +74,14 @@
     </section>
 
     <!-- О нас -->
-    <section class="about-section py-16">
+    <section class="about-section section-padding">
       <v-container>
         <v-row align="center">
           <v-col cols="12" md="6" data-aos="fade-right">
             <div class="about-content">
-              <span class="section-label">О ЦЕЛИТЕЛЕ</span>
-              <h2 class="section-title mb-6">
-                Помощь в преодолении<br/>жизненных кризисов
+              <span class="section-label mb-3 d-block">О ЦЕЛИТЕЛЕ</span>
+              <h2 class="section-title mb-4">
+                Помощь в преодолении жизненных кризисов
               </h2>
               <p class="section-text mb-4">
                 Я - Екатерина, кризисный целитель с многолетним опытом работы. 
@@ -141,12 +141,12 @@
     </section>
 
     <!-- Преимущества -->
-    <section class="features-section py-16">
+    <section class="features-section section-padding">
       <v-container>
         <div class="text-center mb-12" data-aos="fade-up">
-          <span class="section-label">ПРЕИМУЩЕСТВА</span>
-          <h2 class="section-title mb-4">Почему выбирают меня</h2>
-          <p class="section-subtitle">
+          <span class="section-label mb-3 d-inline-block">ПРЕИМУЩЕСТВА</span>
+          <h2 class="section-title mb-3">Почему выбирают меня</h2>
+          <p class="section-subtitle mb-0">
             Профессиональная помощь с заботой о каждом клиенте
           </p>
         </div>
@@ -177,12 +177,12 @@
     </section>
 
     <!-- Каталог продуктов -->
-    <section class="products-section py-16" id="products">
+    <section class="products-section section-padding" id="products">
       <v-container>
         <div class="text-center mb-12" data-aos="fade-up">
-          <span class="section-label">УСЛУГИ</span>
-          <h2 class="section-title mb-4">Мои услуги и программы</h2>
-          <p class="section-subtitle">
+          <span class="section-label mb-3 d-inline-block">УСЛУГИ</span>
+          <h2 class="section-title mb-3">Мои услуги и программы</h2>
+          <p class="section-subtitle mb-0">
             Выберите формат работы, который подходит именно вам
           </p>
         </div>
@@ -256,12 +256,12 @@
     </section>
 
     <!-- Отзывы -->
-    <section class="testimonials-section py-16">
+    <section class="testimonials-section section-padding">
       <v-container>
         <div class="text-center mb-12" data-aos="fade-up">
-          <span class="section-label">ОТЗЫВЫ</span>
-          <h2 class="section-title mb-4">Отзывы моих клиентов</h2>
-          <p class="section-subtitle">
+          <span class="section-label mb-3 d-inline-block">ОТЗЫВЫ</span>
+          <h2 class="section-title mb-3">Отзывы моих клиентов</h2>
+          <p class="section-subtitle mb-0">
             Реальные истории людей, которым я помогла
           </p>
         </div>
@@ -307,12 +307,12 @@
     </section>
 
     <!-- Как это работает -->
-    <section class="process-section py-16">
+    <section class="process-section section-padding">
       <v-container>
         <div class="text-center mb-12" data-aos="fade-up">
-          <span class="section-label">ПРОЦЕСС</span>
-          <h2 class="section-title mb-4">Как проходит работа</h2>
-          <p class="section-subtitle">
+          <span class="section-label mb-3 d-inline-block">ПРОЦЕСС</span>
+          <h2 class="section-title mb-3">Как проходит работа</h2>
+          <p class="section-subtitle mb-0">
             Простой и комфортный процесс начала нашего сотрудничества
           </p>
         </div>
@@ -342,7 +342,7 @@
     </section>
 
     <!-- CTA секция -->
-    <section class="cta-section py-16">
+    <section class="cta-section section-padding">
       <v-container>
         <v-card class="cta-card" elevation="0" data-aos="zoom-in">
           <v-card-text class="pa-12 text-center">
@@ -368,14 +368,14 @@
     </section>
 
     <!-- Контакты -->
-    <section class="contact-section py-16">
+    <section class="contact-section section-padding">
       <v-container>
         <v-row align="center">
           <v-col cols="12" md="6" data-aos="fade-right">
-            <span class="section-label">КОНТАКТЫ</span>
-            <h2 class="section-title mb-6">Свяжитесь со мной</h2>
+            <span class="section-label mb-3 d-block">КОНТАКТЫ</span>
+            <h2 class="section-title mb-4">Свяжитесь со мной</h2>
             <p class="section-text mb-6">
-              Готовы начать путь к изменениям? Я здесь, чтобы помочь!<br/>
+              Готовы начать путь к изменениям? Я здесь, чтобы помочь!
               Свяжитесь со мной удобным для вас способом.
             </p>
             
@@ -695,11 +695,15 @@ export default {
 
     onMounted(() => {
       loadProducts()
-      // Инициализация AOS для анимаций
+      // Инициализация AOS для анимаций с улучшенными настройками
       AOS.init({
-        duration: 800,
+        duration: 1000,
         once: true,
-        offset: 100
+        offset: 80,
+        easing: 'ease-out-cubic',
+        delay: 50,
+        anchorPlacement: 'top-bottom',
+        disable: false
       })
     })
 
@@ -728,9 +732,13 @@ export default {
   padding: 0;
 }
 
+/* Единые отступы для всех секций */
+.section-padding {
+  padding: 5rem 0;
+}
+
 /* Лейблы секций */
 .section-label {
-  display: inline-block;
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 3px;
@@ -739,29 +747,31 @@ export default {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  margin-bottom: 1rem;
 }
 
 /* Заголовки секций */
 .section-title {
-  font-size: 3rem;
-  font-weight: 800;
-  line-height: 1.15;
-  color: #1f2937;
-  letter-spacing: -0.02em;
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #2d3748;
+  letter-spacing: -0.01em;
 }
 
 .section-subtitle {
-  font-size: 1.125rem;
-  color: #6b7280;
-  max-width: 600px;
+  font-size: 1.25rem;
+  color: #718096;
+  max-width: 700px;
   margin: 0 auto;
+  line-height: 1.7;
+  font-weight: 400;
 }
 
 .section-text {
-  font-size: 1rem;
-  line-height: 1.75;
+  font-size: 1.125rem;
+  line-height: 1.8;
   color: #4b5563;
+  font-weight: 400;
 }
 
 /* ============================================
@@ -781,7 +791,7 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #8B5FBF 0%, #B8A9D8 50%, #D4A5D4 100%);
   z-index: 0;
 }
 
@@ -827,20 +837,20 @@ export default {
 }
 
 .hero-title {
-  font-size: 4rem;
-  font-weight: 900;
-  line-height: 1.1;
+  font-size: 3.5rem;
+  font-weight: 700;
+  line-height: 1.2;
   color: white;
-  letter-spacing: -0.02em;
-  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  letter-spacing: -0.01em;
+  text-shadow: 0 2px 15px rgba(0, 0, 0, 0.15);
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #ec4899 100%);
+  background: linear-gradient(135deg, #FFD700 0%, #FFA07A 50%, #FFB6C1 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: gradient-shift 3s ease infinite;
+  animation: gradient-shift 4s ease-in-out infinite;
   background-size: 200% auto;
 }
 
@@ -865,6 +875,24 @@ export default {
   justify-content: center;
 }
 
+.telegram-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+}
+
+.telegram-btn :deep(.v-btn__content) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.telegram-btn :deep(.v-btn__prepend) {
+  margin: 0 !important;
+}
+
 .catalog-btn {
   background: rgba(255, 255, 255, 0.15) !important;
   backdrop-filter: blur(10px);
@@ -873,6 +901,11 @@ export default {
   font-weight: 600 !important;
   transition: all 0.3s ease;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  padding: 0 2rem !important;
 }
 
 .catalog-btn:hover {
@@ -906,11 +939,14 @@ export default {
   font-weight: 700;
   color: white;
   margin-bottom: 0.5rem;
+  line-height: 1.2;
 }
 
 .stat-label {
-  font-size: 1rem;
-  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 400;
+  line-height: 1.5;
 }
 
 .hero-transition {
@@ -1017,12 +1053,13 @@ export default {
 }
 
 .feature-card {
-  border: 1px solid #e5e7eb;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid #f0f0f0;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   height: 100%;
   background: white;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .feature-card::before {
@@ -1031,20 +1068,33 @@ export default {
   top: 0;
   left: 0;
   right: 0;
-  height: 4px;
-  background: linear-gradient(to right, rgb(var(--v-theme-primary)), rgb(var(--v-theme-secondary)));
+  height: 3px;
+  background: linear-gradient(to right, #8B5FBF, #D4A5D4);
   transform: scaleX(0);
-  transition: transform 0.3s ease;
+  transition: transform 0.4s ease;
+}
+
+.feature-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at top right, rgba(139, 95, 191, 0.03), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
 }
 
 .feature-card:hover {
-  transform: translateY(-10px);
-  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15) !important;
-  border-color: rgba(var(--v-theme-primary), 0.3);
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(139, 95, 191, 0.15) !important;
+  border-color: rgba(139, 95, 191, 0.2);
 }
 
 .feature-card:hover::before {
   transform: scaleX(1);
+}
+
+.feature-card:hover::after {
+  opacity: 1;
 }
 
 .feature-icon-wrapper {
@@ -1073,11 +1123,12 @@ export default {
 }
 
 .product-card {
-  border: 2px solid #f3f4f6;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid #f5f3f7;
+  transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
   overflow: hidden;
   background: white;
   position: relative;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
 }
 
 .product-card::after {
@@ -1086,17 +1137,17 @@ export default {
   inset: 0;
   border-radius: inherit;
   padding: 2px;
-  background: linear-gradient(135deg, rgb(var(--v-theme-primary)), rgb(var(--v-theme-secondary)), rgb(var(--v-theme-accent)));
+  background: linear-gradient(135deg, #8B5FBF, #D4A5D4, #FFA07A);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.4s ease;
 }
 
 .product-card:hover {
-  transform: translateY(-12px) scale(1.02);
-  box-shadow: 0 25px 50px rgba(99, 102, 241, 0.25) !important;
+  transform: translateY(-10px) scale(1.01);
+  box-shadow: 0 20px 40px rgba(139, 95, 191, 0.2) !important;
   border-color: transparent;
 }
 
@@ -1138,6 +1189,8 @@ export default {
 .product-description {
   min-height: 60px;
   color: #6b7280;
+  line-height: 1.6;
+  font-size: 0.95rem;
 }
 
 .product-price {
@@ -1194,9 +1247,10 @@ export default {
 
 .testimonial-text {
   font-size: 1rem;
-  line-height: 1.75;
+  line-height: 1.7;
   color: #374151;
   font-style: italic;
+  font-weight: 400;
 }
 
 .testimonial-author {
@@ -1285,16 +1339,18 @@ export default {
 }
 
 .step-title {
-  font-size: 1.25rem;
+  font-size: 1.125rem;
   font-weight: 600;
   color: #1f2937;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.4;
 }
 
 .step-description {
-  font-size: 0.875rem;
+  font-size: 0.95rem;
   color: #6b7280;
-  line-height: 1.5;
+  line-height: 1.6;
+  font-weight: 400;
 }
 
 .step-connector {
@@ -1371,12 +1427,14 @@ export default {
   font-size: 0.875rem;
   color: #6b7280;
   margin-bottom: 0.25rem;
+  font-weight: 500;
 }
 
 .contact-value {
   font-size: 1.125rem;
   font-weight: 600;
   color: #1f2937;
+  line-height: 1.5;
 }
 
 .contact-card {
@@ -1412,7 +1470,9 @@ export default {
 
 .footer-description {
   color: #9ca3af;
-  line-height: 1.75;
+  line-height: 1.7;
+  font-size: 0.95rem;
+  font-weight: 400;
 }
 
 .footer-title {
@@ -1453,43 +1513,108 @@ export default {
 /* ============================================
    АДАПТИВНОСТЬ
    ============================================ */
+/* Плавная прокрутка */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Анимация для всех интерактивных элементов */
+button, a, .v-btn {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 @media (max-width: 960px) {
   .hero-title {
     font-size: 2.5rem;
+    line-height: 1.25;
   }
   
   .section-title {
     font-size: 2rem;
   }
   
+  .section-subtitle {
+    font-size: 1.125rem;
+    line-height: 1.6;
+  }
+  
+  .section-text {
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+  
   .about-image-wrapper {
     height: 300px;
+    margin-top: 3rem;
   }
   
   .step-connector {
     display: none;
   }
+  
+  .section-padding {
+    padding: 3.5rem 0;
+  }
 }
 
 @media (max-width: 600px) {
   .hero-title {
-    font-size: 2rem;
+    font-size: 1.875rem;
+    line-height: 1.3;
   }
   
   .hero-subtitle {
     font-size: 1rem;
+    line-height: 1.6;
   }
   
   .section-title {
     font-size: 1.75rem;
+    line-height: 1.3;
+  }
+  
+  .section-subtitle {
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+  
+  .section-text {
+    font-size: 0.95rem;
+    line-height: 1.6;
   }
   
   .hero-actions {
     flex-direction: column;
+    width: 100%;
   }
   
   .hero-actions .v-btn {
     width: 100%;
+  }
+  
+  .stat-item {
+    padding: 1.5rem 1rem;
+  }
+  
+  .stat-number {
+    font-size: 2rem;
+    line-height: 1.2;
+  }
+  
+  .stat-label {
+    font-size: 0.875rem;
+  }
+  
+  .step-title {
+    font-size: 1rem;
+  }
+  
+  .step-description {
+    font-size: 0.875rem;
+  }
+  
+  .section-padding {
+    padding: 2.5rem 0;
   }
 }
 </style> 

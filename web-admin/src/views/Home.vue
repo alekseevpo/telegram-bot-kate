@@ -359,6 +359,7 @@
               href="https://t.me/kate202_bot"
               target="_blank"
               prepend-icon="mdi-telegram"
+              class="telegram-btn-white"
             >
               Начать в Telegram
             </v-btn>
@@ -418,6 +419,7 @@
               href="https://t.me/kate202_bot"
               target="_blank"
               prepend-icon="mdi-send"
+              class="primary-icon-btn"
             >
               Написать сообщение
             </v-btn>
@@ -460,6 +462,7 @@
                   size="large"
                   block
                   prepend-icon="mdi-send"
+                  class="primary-icon-btn"
                 >
                   Отправить
                 </v-btn>
@@ -514,7 +517,7 @@
           <v-col cols="12" sm="6" md="2" class="mb-6">
             <h4 class="footer-title mb-4">Соц. сети</h4>
             <div class="footer-social">
-              <v-btn icon variant="text" size="small" href="https://t.me/kate202_bot" target="_blank">
+              <v-btn icon variant="text" size="small" href="https://t.me/kate202_bot" target="_blank" class="footer-telegram-btn">
                 <v-icon>mdi-telegram</v-icon>
               </v-btn>
             </div>
@@ -891,6 +894,32 @@ export default {
 
 .telegram-btn :deep(.v-btn__prepend) {
   margin: 0 !important;
+}
+
+.telegram-btn :deep(.v-icon) {
+  color: white !important;
+  font-size: 1.5rem !important;
+}
+
+.telegram-btn-white :deep(.v-icon) {
+  color: #0088cc !important;
+  font-size: 1.5rem !important;
+}
+
+.footer-telegram-btn :deep(.v-icon) {
+  color: #0088cc !important;
+  font-size: 1.25rem !important;
+  transition: all 0.3s ease;
+}
+
+.footer-telegram-btn:hover :deep(.v-icon) {
+  color: #006699 !important;
+  transform: scale(1.1);
+}
+
+.primary-icon-btn :deep(.v-icon) {
+  color: white !important;
+  font-size: 1.25rem !important;
 }
 
 .catalog-btn {

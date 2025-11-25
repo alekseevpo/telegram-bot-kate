@@ -1,12 +1,162 @@
-# Токен вашего Telegram бота (получите у @BotFather)
-BOT_TOKEN=your_bot_token_here
+# ============================================
+# TELEGRAM BOT CONFIGURATION
+# ============================================
 
-# ID администратора (ваш Telegram ID)
+# Токен вашего Telegram бота (получить у @BotFather)
+BOT_TOKEN=123456789:ABCdefGHIjklMNOpqrsTUVwxyz
+
+# Ваш Telegram ID (получить у @userinfobot)
 ADMIN_ID=123456789
 
-# Ссылка на форму для анонимных вопросов
-ANONYMOUS_QUESTION_LINK=https://forms.google.com/your-form-link
+# ============================================
+# БЕЗОПАСНОСТЬ API
+# ============================================
 
-# Дополнительные настройки
-# EMAIL_ADMIN=admin@example.com
-# TELEGRAM_ADMIN=@admin_username 
+# Секретный ключ для API (генерируйте командой ниже)
+# python -c "import secrets; print(secrets.token_urlsafe(32))"
+API_SECRET_KEY=your_super_secret_key_at_least_32_characters
+
+# URL вашего API (production)
+API_URL=https://your-app.onrender.com
+
+# ============================================
+# ПЛАТЕЖИ - ЮMONEY (YOOKASSA)
+# ============================================
+
+# Shop ID из личного кабинета ЮKassa
+YOOKASSA_SHOP_ID=123456
+
+# Секретный ключ из личного кабинета ЮKassa
+# Для тестового режима начинается с "test_"
+# Для боевого режима начинается с "live_"
+YOOKASSA_SECRET_KEY=live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# Токен провайдера платежей от @BotFather
+# Получить: /mybots -> Ваш бот -> Payments -> YooMoney
+PAYMENT_PROVIDER_TOKEN=381764678:LIVE:xxxxxxxxxxxxxxxxxxxxx
+
+# Валюта платежей
+CURRENCY=RUB
+
+# Минимальная сумма платежа (в рублях)
+MIN_PAYMENT_AMOUNT=100
+
+# Максимальная сумма платежа (в рублях)
+MAX_PAYMENT_AMOUNT=999999
+
+# ============================================
+# БАЗА ДАННЫХ
+# ============================================
+
+# Путь к файлу базы данных SQLite
+DATABASE_PATH=bot_database.db
+
+# ============================================
+# ЛОГИРОВАНИЕ И МОНИТОРИНГ
+# ============================================
+
+# Уровень логирования (DEBUG, INFO, WARNING, ERROR)
+LOG_LEVEL=INFO
+
+# Максимальный размер лог-файла в MB
+LOG_MAX_SIZE_MB=10
+
+# Количество резервных копий лог-файлов
+LOG_BACKUP_COUNT=5
+
+# ============================================
+# ОГРАНИЧЕНИЯ И ЗАЩИТА
+# ============================================
+
+# Максимальное количество запросов в минуту к API
+MAX_REQUESTS_PER_MINUTE=60
+
+# Таймаут запросов (в секундах)
+REQUEST_TIMEOUT=30
+
+# ============================================
+# БЕСПЛАТНЫЕ МАТЕРИАЛЫ (TELETYPE)
+# ============================================
+
+# Ссылки на статьи в Teletype
+# Создайте статьи на https://teletype.in и вставьте ссылки
+MATERIAL_1_URL=https://teletype.in/@your_username/osnovy-metoda
+MATERIAL_2_URL=https://teletype.in/@your_username/kak-rabotaet
+MATERIAL_3_URL=https://teletype.in/@your_username/prakticheskie-sovety
+
+# Ссылка на анонимный опрос
+ANONYMOUS_QUESTION_LINK=https://forms.google.com/your-form
+
+# ============================================
+# ДОПОЛНИТЕЛЬНЫЕ НАСТРОЙКИ
+# ============================================
+
+# Режим разработки (True/False)
+DEBUG_MODE=False
+
+# Автоматическое создание резервных копий БД
+AUTO_BACKUP=True
+
+# Интервал резервного копирования (в часах)
+BACKUP_INTERVAL_HOURS=24
+
+# ============================================
+# ИНСТРУКЦИИ
+# ============================================
+
+# 1. Скопируйте этот файл в .env
+# 2. Замените все значения на реальные
+# 3. НИКОГДА не коммитьте .env в git!
+# 4. Используйте надежные, уникальные ключи
+# 5. Регулярно меняйте секретные ключи (каждые 90 дней)
+
+# ============================================
+# ГЕНЕРАЦИЯ КЛЮЧЕЙ
+# ============================================
+
+# Генерация API_SECRET_KEY (32 байта):
+# python -c "import secrets; print(secrets.token_urlsafe(32))"
+
+# Генерация API_SECRET_KEY (64 байта, более надежный):
+# python -c "import secrets; print(secrets.token_urlsafe(64))"
+
+# Генерация UUID:
+# python -c "import uuid; print(uuid.uuid4())"
+
+# ============================================
+# ПОЛУЧЕНИЕ ТОКЕНОВ
+# ============================================
+
+# BOT_TOKEN:
+# 1. Откройте @BotFather в Telegram
+# 2. /newbot или используйте существующего
+# 3. Скопируйте токен
+
+# ADMIN_ID:
+# 1. Откройте @userinfobot в Telegram
+# 2. Отправьте любое сообщение
+# 3. Скопируйте ваш ID
+
+# YOOKASSA КЛЮЧИ:
+# 1. Зарегистрируйтесь на yookassa.ru
+# 2. Создайте магазин
+# 3. Настройки → Интеграция → API-ключи
+# 4. Создайте новый ключ
+# 5. Скопируйте shopId и secretKey
+
+# PAYMENT_PROVIDER_TOKEN:
+# 1. Откройте @BotFather
+# 2. /mybots → Ваш бот → Payments
+# 3. Выберите YooMoney
+# 4. Введите shopId и secretKey
+# 5. Скопируйте токен провайдера
+
+# ============================================
+# ДОПОЛНИТЕЛЬНАЯ ДОКУМЕНТАЦИЯ
+# ============================================
+
+# README.md - Общая информация о проекте
+# SECURITY.md - Руководство по безопасности
+# YOOMONEY_INTEGRATION.md - Подключение ЮMoney
+# DEPLOY.md - Инструкции по деплою
+# TODO.md - План развития проекта

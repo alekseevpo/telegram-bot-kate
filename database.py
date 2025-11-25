@@ -303,4 +303,39 @@ class Database:
                 return orders
         except Exception as e:
             print(f"Ошибка при получении заказов пользователя: {e}")
-            return [] 
+            return []
+    
+    def create_order(self, user_id: int, product_id: int, amount: float, payment_id: str = None) -> int:
+        """
+        Создание нового заказа
+        
+        Args:
+            user_id: ID пользователя
+            product_id: ID продукта
+            amount: Сумма заказа
+            payment_id: ID платежа от платежной системы
+        
+        Returns:
+            ID созданного заказа или 0 при ошибке
+        """
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                
+                # Данные заказа в JSON
+                order_data = {
+                    'product_id': product_id,
+                    'payment_id': payment_id,
+                    'order_date': datetime.now().isoformat()
+                }
+                
+                cursor.execute('''
+                    INSERT INTO orders (user_id, total_amount, status, data)
+                    VALUES (?, ?, 'paid', ?)
+                ''', (user_id, amount, json.dumps(order_data)))
+                
+                conn.commit()
+                return cursor.lastrowid
+        except Exception as e:
+            print(f"Ошибка при создании заказа: {e}")
+            return 0 

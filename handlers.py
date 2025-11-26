@@ -42,9 +42,11 @@ class UserHandlers:
             if query and query.message:
                 # Если есть query, удаляем его сообщение
                 message_to_delete = query.message.message_id
+                logger.info(f"🗑️ Планируется удаление сообщения из query: {message_to_delete}")
             else:
                 # Иначе берем последнее сохраненное
                 message_to_delete = self.db.get_last_message_id(user_id)
+                logger.info(f"🗑️ Планируется удаление последнего сохраненного сообщения: {message_to_delete}")
             
             # Удаляем старое сообщение
             if message_to_delete:
@@ -53,9 +55,11 @@ class UserHandlers:
                         chat_id=chat_id,
                         message_id=message_to_delete
                     )
-                    logger.debug(f"Удалено сообщение {message_to_delete}")
+                    logger.info(f"✅ Удалено сообщение {message_to_delete}")
                 except Exception as e:
-                    logger.warning(f"Не удалось удалить сообщение {message_to_delete}: {e}")
+                    logger.warning(f"❌ Не удалось удалить сообщение {message_to_delete}: {e}")
+            else:
+                logger.info("⚠️ Нет сообщения для удаления")
             
             # Отправляем новое сообщение
             sent_message = await context.bot.send_message(
@@ -67,11 +71,11 @@ class UserHandlers:
             
             # Сохраняем ID нового сообщения
             self.db.update_last_message_id(user_id, sent_message.message_id)
-            logger.debug(f"Отправлено новое сообщение {sent_message.message_id}")
+            logger.info(f"📨 Отправлено новое сообщение {sent_message.message_id}")
             return sent_message.message_id
             
         except Exception as e:
-            logger.error(f"Ошибка при отправке/удалении сообщения: {e}")
+            logger.error(f"❌ Ошибка при отправке/удалении сообщения: {e}")
             return None
     
     async def delete_user_message(self, context: ContextTypes.DEFAULT_TYPE, chat_id: int, message_id: int):
@@ -129,12 +133,16 @@ class UserHandlers:
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             
-            await context.bot.send_message(
+            sent_message = await context.bot.send_message(
                 chat_id=chat_id,
                 text=welcome_text,
                 reply_markup=reply_markup,
                 parse_mode='Markdown'
             )
+            
+            # Сохраняем ID приветственного сообщения для последующего удаления
+            self.db.update_last_message_id(user.id, sent_message.message_id)
+            logger.info(f"📨 Отправлено приветственное сообщение {sent_message.message_id}")
     
     async def help_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Обработка команды /help"""

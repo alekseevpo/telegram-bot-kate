@@ -126,9 +126,9 @@ class UserHandlers:
     
     async def help_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Обработка команды /help"""
-        await self.show_main_menu(update.effective_chat.id, context)
+        await self.show_main_menu(update.effective_chat.id, update.effective_user.id, context)
     
-    async def show_main_menu(self, chat_id: int, context: ContextTypes.DEFAULT_TYPE):
+    async def show_main_menu(self, chat_id: int, user_id: int, context: ContextTypes.DEFAULT_TYPE, query=None):
         """Показать главное меню"""
         menu_text = """
 🤖 **Kate Bot - Ваш помощник!**
@@ -146,11 +146,14 @@ class UserHandlers:
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         
-        await context.bot.send_message(
+        await self.send_or_edit_message(
+            context=context,
             chat_id=chat_id,
+            user_id=user_id,
             text=menu_text,
             reply_markup=reply_markup,
-            parse_mode='Markdown'
+            parse_mode='Markdown',
+            query=query
         )
     
     async def handle_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -158,6 +161,7 @@ class UserHandlers:
         user_id = update.effective_user.id
         message_text = update.message.text
         chat_id = update.effective_chat.id
+        message_id = update.message.message_id
         
         # Получаем данные пользователя
         user_data = self.db.get_user(user_id)
@@ -166,6 +170,10 @@ class UserHandlers:
             return
         
         current_stage = user_data.get('stage', 'start')
+        
+        # Удаляем сообщение пользователя для чистоты чата (кроме stage='phone_confirmation')
+        if current_stage != 'phone_confirmation':
+            await self.delete_user_message(context, chat_id, message_id)
         
         if current_stage == 'name_input':
             # Пользователь вводит имя
@@ -314,11 +322,11 @@ class UserHandlers:
             
         elif data == 'main_menu':
             # Показать главное меню
-            await self.show_main_menu(chat_id, context)
+            await self.show_main_menu(chat_id, user_id, context, query=query)
             
         elif data == 'main_shop':
             # Показать продукты
-            await self.shop_command(update, context)
+            await self.shop_command(update, context, query=query)
             
         elif data == 'main_materials':
             # Показать бесплатные материалы
@@ -342,10 +350,13 @@ class UserHandlers:
                 # Нет даже имени - нужно начать с начала
                 keyboard = [[InlineKeyboardButton("🚀 Начать регистрацию", callback_data="start_registration")]]
                 reply_markup = InlineKeyboardMarkup(keyboard)
-                await context.bot.send_message(
+                await self.send_or_edit_message(
+                    context=context,
                     chat_id=chat_id,
+                    user_id=user_id,
                     text="❌ Для доступа к материалам нужно пройти быструю регистрацию (1 минута)",
-                    reply_markup=reply_markup
+                    reply_markup=reply_markup,
+                    query=query
                 )
             
         elif data == 'main_orders':
@@ -364,11 +375,14 @@ class UserHandlers:
             keyboard = [[InlineKeyboardButton("🏠 Главное меню", callback_data="main_menu")]]
             reply_markup = InlineKeyboardMarkup(keyboard)
             
-            await context.bot.send_message(
+            await self.send_or_edit_message(
+                context=context,
                 chat_id=chat_id,
+                user_id=user_id,
                 text=orders_text,
                 reply_markup=reply_markup,
-                parse_mode='Markdown'
+                parse_mode='Markdown',
+                query=query
             )
             
         elif data == 'main_profile':
@@ -391,11 +405,14 @@ class UserHandlers:
             keyboard = [[InlineKeyboardButton("🏠 Главное меню", callback_data="main_menu")]]
             reply_markup = InlineKeyboardMarkup(keyboard)
             
-            await context.bot.send_message(
+            await self.send_or_edit_message(
+                context=context,
                 chat_id=chat_id,
+                user_id=user_id,
                 text=profile_text,
                 reply_markup=reply_markup,
-                parse_mode='Markdown'
+                parse_mode='Markdown',
+                query=query
             )
             
         elif data == 'main_help':
@@ -422,11 +439,14 @@ class UserHandlers:
             keyboard = [[InlineKeyboardButton("🏠 Главное меню", callback_data="main_menu")]]
             reply_markup = InlineKeyboardMarkup(keyboard)
             
-            await context.bot.send_message(
+            await self.send_or_edit_message(
+                context=context,
                 chat_id=chat_id,
+                user_id=user_id,
                 text=help_text,
                 reply_markup=reply_markup,
-                parse_mode='Markdown'
+                parse_mode='Markdown',
+                query=query
             )
         
         elif data == 'confirm_registration':
@@ -469,11 +489,14 @@ class UserHandlers:
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             
-            await context.bot.send_message(
+            await self.send_or_edit_message(
+                context=context,
                 chat_id=chat_id,
+                user_id=user_id,
                 text=edit_text,
                 reply_markup=reply_markup,
-                parse_mode='Markdown'
+                parse_mode='Markdown',
+                query=query
             )
         
         elif data == 'edit_name':
@@ -493,6 +516,10 @@ class UserHandlers:
                 chat_id=chat_id,
                 text="📱 **Введите ваш новый номер телефона:**"
             )
+        
+        elif data == 'start_registration':
+            # Начать регистрацию заново
+            await self.start_command(update, context)
         
         elif data == 'back_to_confirmation':
             # Возврат к экрану подтверждения
@@ -517,11 +544,14 @@ class UserHandlers:
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             
-            await context.bot.send_message(
+            await self.send_or_edit_message(
+                context=context,
                 chat_id=chat_id,
+                user_id=user_id,
                 text=confirmation_text,
                 reply_markup=reply_markup,
-                parse_mode='Markdown'
+                parse_mode='Markdown',
+                query=query
             )
     
     async def ask_for_name(self, chat_id: int, context: ContextTypes.DEFAULT_TYPE):
@@ -675,9 +705,10 @@ class UserHandlers:
             
             await context.bot.send_message(chat_id=chat_id, text=payment_text)
     
-    async def shop_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def shop_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE, query=None):
         """Показать каталог продуктов"""
         chat_id = update.effective_chat.id
+        user_id = update.effective_user.id
         
         # Получаем продукты из базы
         products = self.db.get_products()
@@ -717,11 +748,14 @@ class UserHandlers:
         
         reply_markup = InlineKeyboardMarkup(keyboard)
         
-        await context.bot.send_message(
+        await self.send_or_edit_message(
+            context=context,
             chat_id=chat_id,
+            user_id=user_id,
             text=catalog_text,
             reply_markup=reply_markup,
-            parse_mode='Markdown'
+            parse_mode='Markdown',
+            query=query
         )
     
     async def cart_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):

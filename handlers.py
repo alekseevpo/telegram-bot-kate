@@ -691,10 +691,10 @@ class UserHandlers:
         else:
             # Если платежей нет - показываем информацию для связи с админом
             payment_text = f"""
-💳 Оформление заказа
+💳 **Оформление заказа**
 
-Продукт: {selected_product['name']}
-Цена: {selected_product['price']} руб.
+📦 Продукт: {selected_product['name']}
+💰 Цена: {selected_product['price']} руб.
 
 Для завершения покупки свяжитесь с администратором:
 📧 Email: admin@example.com
@@ -703,7 +703,18 @@ class UserHandlers:
 Или используйте команду /admin для связи.
             """
             
-            await context.bot.send_message(chat_id=chat_id, text=payment_text)
+            keyboard = [
+                [InlineKeyboardButton("🌐 Веб-сайт", url="https://telegram-bot-kate.vercel.app")],
+                [InlineKeyboardButton("🏠 Главное меню", callback_data="main_menu")]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            
+            await context.bot.send_message(
+                chat_id=chat_id, 
+                text=payment_text,
+                reply_markup=reply_markup,
+                parse_mode='Markdown'
+            )
     
     async def shop_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE, query=None):
         """Показать каталог продуктов"""

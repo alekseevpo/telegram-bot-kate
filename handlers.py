@@ -1,7 +1,10 @@
+import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 from config import *
 from database import Database
+
+logger = logging.getLogger(__name__)
 
 class UserHandlers:
     """Обработчики команд пользователей"""
@@ -21,7 +24,7 @@ class UserHandlers:
         query=None
     ):
         """
-        Умная отправка сообщений: редактирует предыдущее или отправляет новое
+        Умная отправка сообщений: удаляет старое и отправляет новое (эффект замены)
         
         Args:
             context: Контекст бота
@@ -30,34 +33,29 @@ class UserHandlers:
             text: Текст сообщения
             reply_markup: Клавиатура
             parse_mode: Режим парсинга (Markdown/HTML)
-            query: CallbackQuery для редактирования
+            query: CallbackQuery (если есть, удаляет его сообщение)
         """
         try:
-            # Если есть query (нажата inline-кнопка), редактируем сообщение
-            if query:
-                try:
-                    await query.edit_message_text(
-                        text=text,
-                        reply_markup=reply_markup,
-                        parse_mode=parse_mode
-                    )
-                    # Сохраняем ID отредактированного сообщения
-                    self.db.update_last_message_id(user_id, query.message.message_id)
-                    return query.message.message_id
-                except Exception as e:
-                    # Если не получилось отредактировать (например, текст не изменился)
-                    logger.warning(f"Не удалось отредактировать сообщение: {e}")
+            # Определяем ID сообщения для удаления
+            message_to_delete = None
             
-            # Пытаемся удалить предыдущее сообщение бота
-            last_message_id = self.db.get_last_message_id(user_id)
-            if last_message_id:
+            if query and query.message:
+                # Если есть query, удаляем его сообщение
+                message_to_delete = query.message.message_id
+            else:
+                # Иначе берем последнее сохраненное
+                message_to_delete = self.db.get_last_message_id(user_id)
+            
+            # Удаляем старое сообщение
+            if message_to_delete:
                 try:
                     await context.bot.delete_message(
                         chat_id=chat_id,
-                        message_id=last_message_id
+                        message_id=message_to_delete
                     )
+                    logger.debug(f"Удалено сообщение {message_to_delete}")
                 except Exception as e:
-                    logger.warning(f"Не удалось удалить предыдущее сообщение: {e}")
+                    logger.warning(f"Не удалось удалить сообщение {message_to_delete}: {e}")
             
             # Отправляем новое сообщение
             sent_message = await context.bot.send_message(
@@ -69,10 +67,11 @@ class UserHandlers:
             
             # Сохраняем ID нового сообщения
             self.db.update_last_message_id(user_id, sent_message.message_id)
+            logger.debug(f"Отправлено новое сообщение {sent_message.message_id}")
             return sent_message.message_id
             
         except Exception as e:
-            logger.error(f"Ошибка при отправке/редактировании сообщения: {e}")
+            logger.error(f"Ошибка при отправке/удалении сообщения: {e}")
             return None
     
     async def delete_user_message(self, context: ContextTypes.DEFAULT_TYPE, chat_id: int, message_id: int):

@@ -1,4 +1,5 @@
 import logging
+import re
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 from config import *
@@ -12,6 +13,35 @@ class UserHandlers:
     def __init__(self, database: Database, payment_handler=None):
         self.db = database
         self.payment_handler = payment_handler
+    
+    def validate_phone_number(self, phone: str) -> bool:
+        """
+        Валидация номера телефона
+        
+        Принимаются форматы:
+        - 89117929394 (11 цифр, начинается с 8)
+        - 79117929394 (11 цифр, начинается с 7)
+        - +79117929394 (+ и 11 цифр, начинается с 7)
+        - С пробелами, скобками, дефисами: +7 (911) 792-93-94
+        
+        Returns:
+            bool: True если номер корректный, False если нет
+        """
+        # Убираем все символы кроме цифр и +
+        cleaned = re.sub(r'[^\d+]', '', phone)
+        
+        # Проверяем различные форматы
+        patterns = [
+            r'^8\d{10}$',      # 8 + 10 цифр
+            r'^7\d{10}$',      # 7 + 10 цифр
+            r'^\+7\d{10}$',    # +7 + 10 цифр
+        ]
+        
+        for pattern in patterns:
+            if re.match(pattern, cleaned):
+                return True
+        
+        return False
     
     async def send_or_edit_message(
         self, 
@@ -225,7 +255,39 @@ class UserHandlers:
             
         elif current_stage == 'phone_input':
             # Пользователь вводит телефон
-            logger.info(f"Получен телефон от user_id={user_id}")
+            logger.info(f"Получен телефон от user_id={user_id}: {message_text}")
+            
+            # Валидация номера телефона
+            if not self.validate_phone_number(message_text):
+                logger.warning(f"Некорректный номер телефона от user_id={user_id}: {message_text}")
+                
+                error_text = """
+❌ **Некорректный номер телефона**
+
+Пожалуйста, введите номер в правильном формате.
+
+📞 **Примеры корректных форматов:**
+
+• `89117929394` (8 + 10 цифр)
+• `79117929394` (7 + 10 цифр)  
+• `+79117929394` (+7 + 10 цифр)
+• `+7 (911) 792-93-94` (с пробелами и скобками)
+• `8 911 792-93-94` (с пробелами и дефисами)
+
+Попробуйте ещё раз:
+                """
+                
+                await self.send_or_edit_message(
+                    context=context,
+                    chat_id=chat_id,
+                    user_id=user_id,
+                    text=error_text,
+                    parse_mode='Markdown'
+                )
+                return
+            
+            # Номер валидный - сохраняем и переходим к подтверждению
+            logger.info(f"✅ Номер телефона валидный для user_id={user_id}")
             self.db.update_user_data(user_id, 'phone', message_text)
             self.db.update_user_stage(user_id, 'phone_confirmation')
             
@@ -264,39 +326,6 @@ class UserHandlers:
                 parse_mode='Markdown'
             )
             logger.info(f"✅ Подтверждение отправлено")
-            
-        elif current_stage == 'phone_input':
-            # Пользователь вводит телефон
-            self.db.update_user_data(user_id, 'phone', message_text)
-            self.db.update_user_stage(user_id, 'phone_confirmation')
-            
-            # Получаем обновленные данные из БД
-            updated_user_data = self.db.get_user(user_id)
-            user_name = updated_user_data.get('name', 'пользователь')
-            
-            confirmation_text = f"""
-📋 **Проверьте ваши данные:**
-
-👤 Имя: {user_name}
-📱 Телефон: {message_text}
-
-Все верно?
-            """
-            
-            keyboard = [
-                [
-                    InlineKeyboardButton("✅ Все верно", callback_data="confirm_registration"),
-                    InlineKeyboardButton("✏️ Изменить", callback_data="edit_registration")
-                ]
-            ]
-            reply_markup = InlineKeyboardMarkup(keyboard)
-            
-            await context.bot.send_message(
-                chat_id=chat_id,
-                text=confirmation_text,
-                reply_markup=reply_markup,
-                parse_mode='Markdown'
-            )
         
         elif current_stage == 'confirmation':
             # Если пользователь что-то пишет на этапе подтверждения
@@ -390,6 +419,39 @@ class UserHandlers:
         
         elif current_stage == 'edit_phone':
             # Редактирование телефона
+            logger.info(f"Редактирование телефона от user_id={user_id}: {message_text}")
+            
+            # Валидация номера телефона
+            if not self.validate_phone_number(message_text):
+                logger.warning(f"Некорректный номер телефона при редактировании от user_id={user_id}")
+                
+                error_text = """
+❌ **Некорректный номер телефона**
+
+Пожалуйста, введите номер в правильном формате.
+
+📞 **Примеры корректных форматов:**
+
+• `89117929394` (8 + 10 цифр)
+• `79117929394` (7 + 10 цифр)  
+• `+79117929394` (+7 + 10 цифр)
+• `+7 (911) 792-93-94` (с пробелами и скобками)
+• `8 911 792-93-94` (с пробелами и дефисами)
+
+Попробуйте ещё раз:
+                """
+                
+                await self.send_or_edit_message(
+                    context=context,
+                    chat_id=chat_id,
+                    user_id=user_id,
+                    text=error_text,
+                    parse_mode='Markdown'
+                )
+                return
+            
+            # Номер валидный - обновляем
+            logger.info(f"✅ Номер телефона валидный при редактировании для user_id={user_id}")
             self.db.update_user_data(user_id, 'phone', message_text)
             self.db.update_user_stage(user_id, 'phone_confirmation')
             

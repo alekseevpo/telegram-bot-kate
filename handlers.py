@@ -339,6 +339,109 @@ class UserHandlers:
                 "⚠️ Пожалуйста, используйте кнопки выше для подтверждения или изменения данных."
             )
         
+        elif current_stage == 'edit_profile_name':
+            # Ввод имени при редактировании профиля
+            logger.info(f"Получено имя при редактировании профиля от user_id={user_id}: {message_text}")
+            self.db.update_user_data(user_id, 'name', message_text)
+            self.db.update_user_stage(user_id, 'edit_profile_phone')
+            
+            # Просьба указать телефон
+            phone_text = f"""
+Приятно познакомиться, {message_text}! 😊
+
+Для завершения редактирования профиля, пожалуйста, укажите ваш номер телефона.
+
+📞 Формат: +7 (911) 792-93-94
+            """
+            
+            await self.send_or_edit_message(
+                context=context,
+                chat_id=chat_id,
+                user_id=user_id,
+                text=phone_text
+            )
+            logger.info(f"✅ Просьба указать телефон при редактировании отправлена")
+        
+        elif current_stage == 'edit_profile_phone':
+            # Ввод телефона при редактировании профиля
+            logger.info(f"Получен телефон при редактировании профиля от user_id={user_id}: {message_text}")
+            
+            # Валидация номера телефона
+            if not self.validate_phone_number(message_text):
+                logger.warning(f"Некорректный номер телефона при редактировании профиля от user_id={user_id}")
+                
+                error_text = """
+❌ **Некорректный номер телефона**
+
+Пожалуйста, введите номер в правильном формате.
+
+📞 **Примеры корректных форматов:**
+
+• `89117929394` (8 + 10 цифр)
+• `79117929394` (7 + 10 цифр)  
+• `+79117929394` (+7 + 10 цифр)
+• `+7 (911) 792-93-94` (с пробелами и скобками)
+• `8 911 792-93-94` (с пробелами и дефисами)
+
+Попробуйте ещё раз:
+                """
+                
+                await self.send_or_edit_message(
+                    context=context,
+                    chat_id=chat_id,
+                    user_id=user_id,
+                    text=error_text,
+                    parse_mode='Markdown'
+                )
+                return
+            
+            # Номер валидный - сохраняем и переходим к подтверждению
+            logger.info(f"✅ Номер телефона валидный при редактировании профиля для user_id={user_id}")
+            self.db.update_user_data(user_id, 'phone', message_text)
+            self.db.update_user_stage(user_id, 'edit_profile_confirmation')
+            
+            # Получаем обновленные данные из БД
+            updated_user_data = self.db.get_user(user_id)
+            user_name = updated_user_data.get('name', 'пользователь')
+            gender = updated_user_data.get('gender', 'не указан')
+            gender_text = 'Мужчина' if gender == 'male' else 'Женщина' if gender == 'female' else 'Не указан'
+            
+            confirmation_text = f"""
+✅ **Профиль обновлен!**
+
+Пожалуйста, подтвердите введенные данные:
+
+👥 Пол: {gender_text}
+👤 Имя: {user_name}
+📱 Телефон: {message_text}
+
+Всё верно?
+            """
+            
+            keyboard = [
+                [
+                    InlineKeyboardButton("✅ Всё верно", callback_data="confirm_profile_edit"),
+                    InlineKeyboardButton("✏️ Изменить", callback_data="edit_profile")
+                ]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            
+            await self.send_or_edit_message(
+                context=context,
+                chat_id=chat_id,
+                user_id=user_id,
+                text=confirmation_text,
+                reply_markup=reply_markup,
+                parse_mode='Markdown'
+            )
+            logger.info(f"✅ Подтверждение редактирования профиля отправлено")
+        
+        elif current_stage == 'edit_profile_confirmation':
+            # Если пользователь что-то пишет на этапе подтверждения редактирования
+            await update.message.reply_text(
+                "⚠️ Пожалуйста, используйте кнопки выше для подтверждения или изменения данных."
+            )
+        
         elif current_stage == 'edit_name_simple':
             # Редактирование имени (упрощенная регистрация)
             self.db.update_user_data(user_id, 'name', message_text)
@@ -613,20 +716,25 @@ class UserHandlers:
             # Показать профиль пользователя
             user_data = self.db.get_user(user_id)
             if user_data:
+                gender = user_data.get('gender', 'не указан')
+                gender_text = 'Мужчина' if gender == 'male' else 'Женщина' if gender == 'female' else 'Не указан'
+                
                 profile_text = f"""
 👤 **Ваш профиль:**
 
 🆔 ID: `{user_data['user_id']}`
 👤 Имя: {user_data.get('name', 'Не указано')}
-👥 Пол: {user_data.get('gender', 'Не указан')}
+👥 Пол: {gender_text}
 📱 Телефон: {user_data.get('phone', 'Не указан')}
-📊 Этап: {user_data.get('stage', 'Не указан')}
 📅 Регистрация: {user_data.get('registration_date', 'Не указана')}
                 """
             else:
                 profile_text = "❌ Профиль не найден."
             
-            keyboard = [[InlineKeyboardButton("🏠 Главное меню", callback_data="main_menu")]]
+            keyboard = [
+                [InlineKeyboardButton("✏️ Редактировать профиль", callback_data="edit_profile")],
+                [InlineKeyboardButton("🏠 Главное меню", callback_data="main_menu")]
+            ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             
             await self.send_or_edit_message(
@@ -636,6 +744,61 @@ class UserHandlers:
                 text=profile_text,
                 reply_markup=reply_markup,
                 parse_mode='Markdown',
+                query=query
+            )
+        
+        elif data == 'edit_profile':
+            # Начало редактирования профиля (тот же порядок, что и при регистрации)
+            logger.info(f"Начало редактирования профиля user_id={user_id}")
+            
+            # Устанавливаем stage для начала редактирования
+            self.db.update_user_stage(user_id, 'edit_profile_gender')
+            
+            edit_start_text = """
+✏️ **Редактирование профиля**
+
+Давайте обновим ваши данные. Начнем с выбора пола:
+
+Какого вы пола?
+            """
+            
+            keyboard = [
+                [
+                    InlineKeyboardButton("👨 Мужчина", callback_data="edit_profile_gender_male"),
+                    InlineKeyboardButton("👩 Женщина", callback_data="edit_profile_gender_female")
+                ]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            
+            await self.send_or_edit_message(
+                context=context,
+                chat_id=chat_id,
+                user_id=user_id,
+                text=edit_start_text,
+                reply_markup=reply_markup,
+                parse_mode='Markdown',
+                query=query
+            )
+        
+        elif data.startswith('edit_profile_gender_'):
+            # Обработка выбора пола при редактировании профиля
+            gender = 'male' if data == 'edit_profile_gender_male' else 'female'
+            gender_text = 'мужчина' if gender == 'male' else 'женщина'
+            
+            self.db.update_user_data(user_id, 'gender', gender)
+            self.db.update_user_stage(user_id, 'edit_profile_name')
+            
+            name_request_text = f"""
+Отлично! Вы выбрали: {gender_text}
+
+Теперь, пожалуйста, введите ваше имя:
+            """
+            
+            await self.send_or_edit_message(
+                context=context,
+                chat_id=chat_id,
+                user_id=user_id,
+                text=name_request_text,
                 query=query
             )
             
@@ -830,6 +993,45 @@ class UserHandlers:
             # Отправляем бесплатные материалы ПОСЛЕ регистрации
             logger.info(f"Отправка материалов с is_registered=True")
             await self.send_free_materials(chat_id, context, user_name, is_registered=True)
+        
+        elif data == 'confirm_profile_edit':
+            # Подтверждение редактирования профиля
+            logger.info(f"Подтверждение редактирования профиля user_id={user_id}")
+            self.db.update_user_stage(user_id, 'registered')
+            
+            user_data = self.db.get_user(user_id)
+            user_name = user_data.get('name', 'пользователь')
+            phone = user_data.get('phone', 'Не указан')
+            gender = user_data.get('gender', 'не указан')
+            gender_text = 'Мужчина' if gender == 'male' else 'Женщина' if gender == 'female' else 'Не указан'
+            
+            success_text = f"""
+✅ **{user_name}, профиль успешно обновлен!**
+
+Ваши обновленные данные:
+👥 Пол: {gender_text}
+👤 Имя: {user_name}
+📱 Телефон: {phone}
+
+Изменения сохранены!
+            """
+            
+            keyboard = [
+                [InlineKeyboardButton("👤 Мой профиль", callback_data="main_profile")],
+                [InlineKeyboardButton("🏠 Главное меню", callback_data="main_menu")]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            
+            await self.send_or_edit_message(
+                context=context,
+                chat_id=chat_id,
+                user_id=user_id,
+                text=success_text,
+                reply_markup=reply_markup,
+                parse_mode='Markdown',
+                query=query
+            )
+            logger.info(f"✅ Профиль обновлен для user_id={user_id}")
         
         elif data == 'edit_registration':
             # Выбор что редактировать

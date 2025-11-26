@@ -125,8 +125,7 @@ class UserHandlers:
                 [
                     InlineKeyboardButton("👨 Мужчина", callback_data="gender_male"),
                     InlineKeyboardButton("👩 Женщина", callback_data="gender_female")
-                ],
-                [InlineKeyboardButton("🏠 Главное меню", callback_data="main_menu")]
+                ]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             
@@ -190,8 +189,10 @@ class UserHandlers:
         
         if current_stage == 'name_input':
             # Пользователь вводит имя
+            logger.info(f"Получено имя от user_id={user_id}: {message_text}")
             self.db.update_user_data(user_id, 'name', message_text)
             self.db.update_user_stage(user_id, 'phone_input')
+            logger.info(f"Обновлен stage на 'phone_input' для user_id={user_id}")
             
             # Приятное приветствие и просьба указать телефон
             phone_text = f"""
@@ -205,12 +206,14 @@ class UserHandlers:
             """
             
             # Используем send_or_edit_message для удаления предыдущих сообщений
+            logger.info(f"Отправляем просьбу указать телефон для user_id={user_id}")
             await self.send_or_edit_message(
                 context=context,
                 chat_id=chat_id,
                 user_id=user_id,
                 text=phone_text
             )
+            logger.info(f"✅ Просьба указать телефон отправлена. НЕ отправляем материалы!")
             
         elif current_stage == 'phone_input':
             # Пользователь вводит телефон

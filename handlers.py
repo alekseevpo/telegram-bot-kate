@@ -193,15 +193,24 @@ class UserHandlers:
             self.db.update_user_data(user_id, 'name', message_text)
             self.db.update_user_stage(user_id, 'phone_input')
             
-            # Сразу просим телефон (материалы будут ПОСЛЕ регистрации)
+            # Приятное приветствие и просьба указать телефон
             phone_text = f"""
-Отлично, {message_text}! 
+Приятно познакомиться, {message_text}! 😊
 
-Теперь давайте договоримся о бесплатном диагностическом созвоне!
+Для завершения регистрации, пожалуйста, укажите ваш номер телефона.
 
-📞 Пожалуйста, оставьте ваш номер телефона для связи:
+📞 Формат: +7 (911) 792-93-94
+
+После этого вы получите доступ к бесплатным материалам!
             """
-            await context.bot.send_message(chat_id=chat_id, text=phone_text)
+            
+            # Используем send_or_edit_message для удаления предыдущих сообщений
+            await self.send_or_edit_message(
+                context=context,
+                chat_id=chat_id,
+                user_id=user_id,
+                text=phone_text
+            )
             
         elif current_stage == 'phone_input':
             # Пользователь вводит телефон
@@ -324,9 +333,25 @@ class UserHandlers:
         if data.startswith('gender_'):
             # Обработка выбора пола
             gender = 'male' if data == 'gender_male' else 'female'
+            gender_text = 'мужчина' if gender == 'male' else 'женщина'
+            
             self.db.update_user_data(user_id, 'gender', gender)
             self.db.update_user_stage(user_id, 'name_input')
-            await self.ask_for_name(chat_id, context)
+            
+            # Удаляем предыдущее сообщение и отправляем новое с просьбой ввести имя
+            name_request_text = f"""
+Отлично! Вы выбрали: {gender_text}
+
+Теперь, пожалуйста, введите ваше имя:
+            """
+            
+            await self.send_or_edit_message(
+                context=context,
+                chat_id=chat_id,
+                user_id=user_id,
+                text=name_request_text,
+                query=query
+            )
             
         elif data.startswith('product_'):
             # Обработка выбора продукта

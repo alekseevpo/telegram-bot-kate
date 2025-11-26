@@ -103,6 +103,7 @@ class UserHandlers:
         is_registered = (
             user_data and 
             user_data.get('name') and 
+            user_data.get('phone') and
             user_data.get('stage') == 'registered'
         )
         
@@ -198,36 +199,62 @@ class UserHandlers:
             # Пользователь вводит имя
             logger.info(f"Получено имя от user_id={user_id}: {message_text}")
             self.db.update_user_data(user_id, 'name', message_text)
-            self.db.update_user_stage(user_id, 'confirmation')
-            logger.info(f"Обновлен stage на 'confirmation' для user_id={user_id}")
+            self.db.update_user_stage(user_id, 'phone_input')
+            logger.info(f"Обновлен stage на 'phone_input' для user_id={user_id}")
             
-            # Получаем данные пользователя для подтверждения
-            user_data = self.db.get_user(user_id)
-            gender = user_data.get('gender', 'не указан')
+            # Приятное приветствие и просьба указать телефон
+            phone_text = f"""
+Приятно познакомиться, {message_text}! 😊
+
+Для завершения регистрации, пожалуйста, укажите ваш номер телефона.
+
+📞 Формат: +7 (911) 792-93-94
+
+После подтверждения данных вы получите доступ к бесплатным материалам!
+            """
+            
+            # Используем send_or_edit_message для удаления предыдущих сообщений
+            logger.info(f"Отправляем просьбу указать телефон для user_id={user_id}")
+            await self.send_or_edit_message(
+                context=context,
+                chat_id=chat_id,
+                user_id=user_id,
+                text=phone_text
+            )
+            logger.info(f"✅ Просьба указать телефон отправлена")
+            
+        elif current_stage == 'phone_input':
+            # Пользователь вводит телефон
+            logger.info(f"Получен телефон от user_id={user_id}")
+            self.db.update_user_data(user_id, 'phone', message_text)
+            self.db.update_user_stage(user_id, 'phone_confirmation')
+            
+            # Получаем обновленные данные из БД
+            updated_user_data = self.db.get_user(user_id)
+            user_name = updated_user_data.get('name', 'пользователь')
+            gender = updated_user_data.get('gender', 'не указан')
             gender_text = 'Мужчина' if gender == 'male' else 'Женщина' if gender == 'female' else 'Не указан'
             
-            # Благодарим и просим подтвердить
             confirmation_text = f"""
 ✅ **Благодарим за регистрацию!**
 
 Пожалуйста, подтвердите введенные данные:
 
 👥 Пол: {gender_text}
-👤 Имя: {message_text}
+👤 Имя: {user_name}
+📱 Телефон: {message_text}
 
 Всё верно?
             """
             
             keyboard = [
                 [
-                    InlineKeyboardButton("✅ Всё верно", callback_data="confirm_simple_registration"),
-                    InlineKeyboardButton("✏️ Изменить", callback_data="edit_simple_registration")
+                    InlineKeyboardButton("✅ Всё верно", callback_data="confirm_registration"),
+                    InlineKeyboardButton("✏️ Изменить", callback_data="edit_registration")
                 ]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             
-            # Используем send_or_edit_message для удаления предыдущих сообщений
-            logger.info(f"Отправляем подтверждение данных для user_id={user_id}")
             await self.send_or_edit_message(
                 context=context,
                 chat_id=chat_id,
@@ -329,28 +356,33 @@ class UserHandlers:
             # Получаем обновленные данные из БД
             updated_user_data = self.db.get_user(user_id)
             phone = updated_user_data.get('phone', 'Не указан')
+            gender = updated_user_data.get('gender', 'не указан')
+            gender_text = 'Мужчина' if gender == 'male' else 'Женщина' if gender == 'female' else 'Не указан'
             
             confirmation_text = f"""
 ✅ **Имя обновлено!**
 
-📋 **Ваши данные:**
+Пожалуйста, подтвердите введенные данные:
 
+👥 Пол: {gender_text}
 👤 Имя: {message_text}
 📱 Телефон: {phone}
 
-Все верно?
+Всё верно?
             """
             
             keyboard = [
                 [
-                    InlineKeyboardButton("✅ Все верно", callback_data="confirm_registration"),
+                    InlineKeyboardButton("✅ Всё верно", callback_data="confirm_registration"),
                     InlineKeyboardButton("✏️ Изменить", callback_data="edit_registration")
                 ]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             
-            await context.bot.send_message(
+            await self.send_or_edit_message(
+                context=context,
                 chat_id=chat_id,
+                user_id=user_id,
                 text=confirmation_text,
                 reply_markup=reply_markup,
                 parse_mode='Markdown'
@@ -364,28 +396,33 @@ class UserHandlers:
             # Получаем обновленные данные из БД
             updated_user_data = self.db.get_user(user_id)
             name = updated_user_data.get('name', 'пользователь')
+            gender = updated_user_data.get('gender', 'не указан')
+            gender_text = 'Мужчина' if gender == 'male' else 'Женщина' if gender == 'female' else 'Не указан'
             
             confirmation_text = f"""
 ✅ **Телефон обновлен!**
 
-📋 **Ваши данные:**
+Пожалуйста, подтвердите введенные данные:
 
+👥 Пол: {gender_text}
 👤 Имя: {name}
 📱 Телефон: {message_text}
 
-Все верно?
+Всё верно?
             """
             
             keyboard = [
                 [
-                    InlineKeyboardButton("✅ Все верно", callback_data="confirm_registration"),
+                    InlineKeyboardButton("✅ Всё верно", callback_data="confirm_registration"),
                     InlineKeyboardButton("✏️ Изменить", callback_data="edit_registration")
                 ]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             
-            await context.bot.send_message(
+            await self.send_or_edit_message(
+                context=context,
                 chat_id=chat_id,
+                user_id=user_id,
                 text=confirmation_text,
                 reply_markup=reply_markup,
                 parse_mode='Markdown'
@@ -444,10 +481,11 @@ class UserHandlers:
             logger.info(f"Запрос материалов от user_id={user_id}")
             logger.info(f"user_data: name={user_data.get('name')}, phone={user_data.get('phone')}, stage={user_data.get('stage')}")
             
-            # Проверяем полную регистрацию: имя и stage='registered'
+            # Проверяем полную регистрацию: имя, телефон и stage='registered'
             is_registered = (
                 user_data and 
                 user_data.get('name') and 
+                user_data.get('phone') and
                 user_data.get('stage') == 'registered'
             )
             
@@ -698,20 +736,23 @@ class UserHandlers:
             )
         
         elif data == 'confirm_registration':
-            # Подтверждение регистрации (старая версия с телефоном - для совместимости)
+            # Подтверждение регистрации
             logger.info(f"Подтверждение регистрации user_id={user_id}")
             self.db.update_user_stage(user_id, 'registered')
             
             user_data = self.db.get_user(user_id)
             user_name = user_data.get('name', 'пользователь')
             phone = user_data.get('phone', 'Не указан')
+            gender = user_data.get('gender', 'не указан')
+            gender_text = 'Мужчина' if gender == 'male' else 'Женщина' if gender == 'female' else 'Не указан'
             
-            logger.info(f"После update_user_stage: name={user_name}, phone={phone}, stage={user_data.get('stage')}")
+            logger.info(f"После update_user_stage: name={user_name}, phone={phone}, gender={gender_text}, stage={user_data.get('stage')}")
             
             success_text = f"""
 ✅ **{user_name}, отлично! Регистрация завершена!**
 
 Ваши данные:
+👥 Пол: {gender_text}
 👤 Имя: {user_name}
 📱 Телефон: {phone}
 
@@ -735,6 +776,7 @@ class UserHandlers:
             """
             
             keyboard = [
+                [InlineKeyboardButton("👥 Изменить пол", callback_data="edit_gender")],
                 [InlineKeyboardButton("👤 Изменить имя", callback_data="edit_name")],
                 [InlineKeyboardButton("📱 Изменить телефон", callback_data="edit_phone")],
                 [InlineKeyboardButton("◀️ Назад", callback_data="back_to_confirmation")]
@@ -778,23 +820,30 @@ class UserHandlers:
             user_data = self.db.get_user(user_id)
             user_name = user_data.get('name', 'пользователь')
             phone = user_data.get('phone', 'Не указан')
+            gender = user_data.get('gender', 'не указан')
+            gender_text = 'Мужчина' if gender == 'male' else 'Женщина' if gender == 'female' else 'Не указан'
             
             confirmation_text = f"""
-📋 **Проверьте ваши данные:**
+✅ **Благодарим за регистрацию!**
 
+Пожалуйста, подтвердите введенные данные:
+
+👥 Пол: {gender_text}
 👤 Имя: {user_name}
 📱 Телефон: {phone}
 
-Все верно?
+Всё верно?
             """
             
             keyboard = [
                 [
-                    InlineKeyboardButton("✅ Все верно", callback_data="confirm_registration"),
+                    InlineKeyboardButton("✅ Всё верно", callback_data="confirm_registration"),
                     InlineKeyboardButton("✏️ Изменить", callback_data="edit_registration")
                 ]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
+            
+            self.db.update_user_stage(user_id, 'phone_confirmation')
             
             await self.send_or_edit_message(
                 context=context,

@@ -555,8 +555,8 @@ class UserHandlers:
             
             if is_registered:
                 # Пользователь уже зарегистрирован - просто показываем материалы
-                logger.info("Показываем материалы зарегистрированному пользователю")
-                await self.send_free_materials(chat_id, context, user_data['name'], is_registered=True)
+                logger.info("Показываем материалы зарегистрированному пользователю из главного меню")
+                await self.send_free_materials(chat_id, context, user_data['name'], is_registered=True, source='menu')
             else:
                 # Пользователь НЕ зарегистрирован полностью - требуем завершить регистрацию
                 logger.info(f"Требуем завершить регистрацию. Текущий stage: {user_data.get('stage')}")
@@ -925,15 +925,38 @@ class UserHandlers:
         
         await context.bot.send_message(chat_id=chat_id, text=name_text)
     
-    async def send_free_materials(self, chat_id: int, context: ContextTypes.DEFAULT_TYPE, user_name: str, is_registered: bool = False):
-        """Отправка бесплатных материалов"""
-        materials_text = f"""
-{user_name}, спасибо! 
+    async def send_free_materials(self, chat_id: int, context: ContextTypes.DEFAULT_TYPE, user_name: str, is_registered: bool = False, source: str = 'registration'):
+        """
+        Отправка бесплатных материалов
+        
+        Args:
+            chat_id: ID чата
+            context: Контекст бота
+            user_name: Имя пользователя
+            is_registered: Зарегистрирован ли пользователь
+            source: Источник запроса - 'registration' (после регистрации) или 'menu' (из главного меню)
+        """
+        # Разные тексты в зависимости от источника
+        if source == 'registration':
+            # Сообщение после регистрации
+            materials_text = f"""
+🎉 **{user_name}, поздравляем с завершением регистрации!**
 
 {FREE_MATERIALS['welcome_message']}
 
+🎁 Ниже вы найдете бесплатные материалы, которые помогут вам начать:
+
 Нажмите на кнопки ниже, чтобы открыть материалы:
-        """
+            """
+        else:
+            # Сообщение из главного меню
+            materials_text = f"""
+📚 **Бесплатные материалы**
+
+{FREE_MATERIALS['welcome_message']}
+
+Выберите материал, который вас интересует:
+            """
         
         # Создаем кнопки со ссылками на материалы
         keyboard = []
@@ -958,7 +981,8 @@ class UserHandlers:
         await context.bot.send_message(
             chat_id=chat_id,
             text=materials_text,
-            reply_markup=reply_markup
+            reply_markup=reply_markup,
+            parse_mode='Markdown'
         )
         
         # Просим телефон ТОЛЬКО если пользователь еще не зарегистрирован

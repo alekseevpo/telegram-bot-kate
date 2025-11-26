@@ -103,7 +103,6 @@ class UserHandlers:
         is_registered = (
             user_data and 
             user_data.get('name') and 
-            user_data.get('phone') and
             user_data.get('stage') == 'registered'
         )
         
@@ -199,29 +198,45 @@ class UserHandlers:
             # Пользователь вводит имя
             logger.info(f"Получено имя от user_id={user_id}: {message_text}")
             self.db.update_user_data(user_id, 'name', message_text)
-            self.db.update_user_stage(user_id, 'phone_input')
-            logger.info(f"Обновлен stage на 'phone_input' для user_id={user_id}")
+            self.db.update_user_stage(user_id, 'confirmation')
+            logger.info(f"Обновлен stage на 'confirmation' для user_id={user_id}")
             
-            # Приятное приветствие и просьба указать телефон
-            phone_text = f"""
-Приятно познакомиться, {message_text}! 😊
+            # Получаем данные пользователя для подтверждения
+            user_data = self.db.get_user(user_id)
+            gender = user_data.get('gender', 'не указан')
+            gender_text = 'Мужчина' if gender == 'male' else 'Женщина' if gender == 'female' else 'Не указан'
+            
+            # Благодарим и просим подтвердить
+            confirmation_text = f"""
+✅ **Благодарим за регистрацию!**
 
-Для завершения регистрации, пожалуйста, укажите ваш номер телефона.
+Пожалуйста, подтвердите введенные данные:
 
-📞 Формат: +7 (911) 792-93-94
+👥 Пол: {gender_text}
+👤 Имя: {message_text}
 
-После этого вы получите доступ к бесплатным материалам!
+Всё верно?
             """
             
+            keyboard = [
+                [
+                    InlineKeyboardButton("✅ Всё верно", callback_data="confirm_simple_registration"),
+                    InlineKeyboardButton("✏️ Изменить", callback_data="edit_simple_registration")
+                ]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            
             # Используем send_or_edit_message для удаления предыдущих сообщений
-            logger.info(f"Отправляем просьбу указать телефон для user_id={user_id}")
+            logger.info(f"Отправляем подтверждение данных для user_id={user_id}")
             await self.send_or_edit_message(
                 context=context,
                 chat_id=chat_id,
                 user_id=user_id,
-                text=phone_text
+                text=confirmation_text,
+                reply_markup=reply_markup,
+                parse_mode='Markdown'
             )
-            logger.info(f"✅ Просьба указать телефон отправлена. НЕ отправляем материалы!")
+            logger.info(f"✅ Подтверждение отправлено")
             
         elif current_stage == 'phone_input':
             # Пользователь вводит телефон
@@ -256,10 +271,54 @@ class UserHandlers:
                 parse_mode='Markdown'
             )
         
-        elif current_stage == 'phone_confirmation':
+        elif current_stage == 'confirmation':
             # Если пользователь что-то пишет на этапе подтверждения
             await update.message.reply_text(
                 "⚠️ Пожалуйста, используйте кнопки выше для подтверждения или изменения данных."
+            )
+        
+        elif current_stage == 'phone_confirmation':
+            # Если пользователь что-то пишет на этапе подтверждения (старая версия)
+            await update.message.reply_text(
+                "⚠️ Пожалуйста, используйте кнопки выше для подтверждения или изменения данных."
+            )
+        
+        elif current_stage == 'edit_name_simple':
+            # Редактирование имени (упрощенная регистрация)
+            self.db.update_user_data(user_id, 'name', message_text)
+            self.db.update_user_stage(user_id, 'confirmation')
+            
+            # Получаем обновленные данные из БД
+            updated_user_data = self.db.get_user(user_id)
+            gender = updated_user_data.get('gender', 'не указан')
+            gender_text = 'Мужчина' if gender == 'male' else 'Женщина' if gender == 'female' else 'Не указан'
+            
+            confirmation_text = f"""
+✅ **Имя обновлено!**
+
+Пожалуйста, подтвердите введенные данные:
+
+👥 Пол: {gender_text}
+👤 Имя: {message_text}
+
+Всё верно?
+            """
+            
+            keyboard = [
+                [
+                    InlineKeyboardButton("✅ Всё верно", callback_data="confirm_simple_registration"),
+                    InlineKeyboardButton("✏️ Изменить", callback_data="edit_simple_registration")
+                ]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            
+            await self.send_or_edit_message(
+                context=context,
+                chat_id=chat_id,
+                user_id=user_id,
+                text=confirmation_text,
+                reply_markup=reply_markup,
+                parse_mode='Markdown'
             )
         
         elif current_stage == 'edit_name':
@@ -385,11 +444,10 @@ class UserHandlers:
             logger.info(f"Запрос материалов от user_id={user_id}")
             logger.info(f"user_data: name={user_data.get('name')}, phone={user_data.get('phone')}, stage={user_data.get('stage')}")
             
-            # Проверяем полную регистрацию: имя, телефон и stage='registered'
+            # Проверяем полную регистрацию: имя и stage='registered'
             is_registered = (
                 user_data and 
                 user_data.get('name') and 
-                user_data.get('phone') and
                 user_data.get('stage') == 'registered'
             )
             
@@ -515,8 +573,132 @@ class UserHandlers:
                 query=query
             )
         
+        elif data == 'confirm_simple_registration':
+            # Подтверждение упрощенной регистрации (без телефона)
+            logger.info(f"Подтверждение упрощенной регистрации user_id={user_id}")
+            self.db.update_user_stage(user_id, 'registered')
+            
+            user_data = self.db.get_user(user_id)
+            user_name = user_data.get('name', 'пользователь')
+            
+            logger.info(f"После update_user_stage: name={user_name}, stage={user_data.get('stage')}")
+            
+            success_text = f"""
+✅ **{user_name}, отлично! Регистрация завершена!**
+
+🎁 Сейчас вы получите доступ к бесплатным материалам...
+            """
+            
+            await context.bot.send_message(
+                chat_id=chat_id,
+                text=success_text,
+                parse_mode='Markdown'
+            )
+            
+            # Отправляем бесплатные материалы ПОСЛЕ регистрации
+            logger.info(f"Отправка материалов с is_registered=True")
+            await self.send_free_materials(chat_id, context, user_name, is_registered=True)
+        
+        elif data == 'edit_simple_registration':
+            # Редактирование данных упрощенной регистрации
+            edit_text = """
+✏️ **Что вы хотите изменить?**
+            """
+            
+            keyboard = [
+                [InlineKeyboardButton("👥 Изменить пол", callback_data="edit_gender")],
+                [InlineKeyboardButton("👤 Изменить имя", callback_data="edit_name_simple")],
+                [InlineKeyboardButton("◀️ Назад", callback_data="back_to_simple_confirmation")]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            
+            await self.send_or_edit_message(
+                context=context,
+                chat_id=chat_id,
+                user_id=user_id,
+                text=edit_text,
+                reply_markup=reply_markup,
+                parse_mode='Markdown',
+                query=query
+            )
+        
+        elif data == 'edit_gender':
+            # Запрос нового пола
+            self.db.update_user_stage(user_id, 'gender_selection')
+            
+            gender_text = """
+👥 **Выберите ваш пол:**
+            """
+            
+            keyboard = [
+                [
+                    InlineKeyboardButton("👨 Мужчина", callback_data="gender_male"),
+                    InlineKeyboardButton("👩 Женщина", callback_data="gender_female")
+                ],
+                [InlineKeyboardButton("◀️ Назад", callback_data="back_to_simple_confirmation")]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            
+            await self.send_or_edit_message(
+                context=context,
+                chat_id=chat_id,
+                user_id=user_id,
+                text=gender_text,
+                reply_markup=reply_markup,
+                parse_mode='Markdown',
+                query=query
+            )
+        
+        elif data == 'edit_name_simple':
+            # Запрос нового имени
+            self.db.update_user_stage(user_id, 'edit_name_simple')
+            
+            await context.bot.send_message(
+                chat_id=chat_id,
+                text="👤 **Введите ваше новое имя:**",
+                parse_mode='Markdown'
+            )
+        
+        elif data == 'back_to_simple_confirmation':
+            # Возврат к подтверждению
+            user_data = self.db.get_user(user_id)
+            user_name = user_data.get('name', 'пользователь')
+            gender = user_data.get('gender', 'не указан')
+            gender_text = 'Мужчина' if gender == 'male' else 'Женщина' if gender == 'female' else 'Не указан'
+            
+            confirmation_text = f"""
+✅ **Благодарим за регистрацию!**
+
+Пожалуйста, подтвердите введенные данные:
+
+👥 Пол: {gender_text}
+👤 Имя: {user_name}
+
+Всё верно?
+            """
+            
+            keyboard = [
+                [
+                    InlineKeyboardButton("✅ Всё верно", callback_data="confirm_simple_registration"),
+                    InlineKeyboardButton("✏️ Изменить", callback_data="edit_simple_registration")
+                ]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            
+            self.db.update_user_stage(user_id, 'confirmation')
+            
+            await self.send_or_edit_message(
+                context=context,
+                chat_id=chat_id,
+                user_id=user_id,
+                text=confirmation_text,
+                reply_markup=reply_markup,
+                parse_mode='Markdown',
+                query=query
+            )
+        
         elif data == 'confirm_registration':
-            # Подтверждение регистрации
+            # Подтверждение регистрации (старая версия с телефоном - для совместимости)
             logger.info(f"Подтверждение регистрации user_id={user_id}")
             self.db.update_user_stage(user_id, 'registered')
             

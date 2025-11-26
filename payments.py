@@ -76,7 +76,7 @@ class PaymentHandler:
                 currency='RUB',
                 prices=prices,
                 start_parameter='payment',
-                photo_url='https://telegram-bot-kate-qbdv.vercel.app/og-image.jpg',
+                photo_url='https://telegram-bot-kate.vercel.app/og-image.jpg',
                 photo_width=800,
                 photo_height=600,
                 need_name=True,

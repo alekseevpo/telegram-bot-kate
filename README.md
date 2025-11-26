@@ -228,7 +228,7 @@ telegram-bot-kate/
 
 ## 🎨 Публичный сайт
 
-Доступен по адресу: [telegram-bot-kate.vercel.app](https://telegram-bot-kate-qbdv.vercel.app/)
+Доступен по адресу: [telegram-bot-kate.vercel.app](https://telegram-bot-kate.vercel.app/)
 
 **Функции:**
 - 🏠 Hero секция с CTA

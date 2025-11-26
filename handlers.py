@@ -69,7 +69,7 @@ class UserHandlers:
             [InlineKeyboardButton("📚 Бесплатные материалы", callback_data="main_materials")],
             [InlineKeyboardButton("📋 Мои заказы", callback_data="main_orders")],
             [InlineKeyboardButton("👤 Мой профиль", callback_data="main_profile")],
-            [InlineKeyboardButton("🌐 Веб-сайт", url="https://telegram-bot-kate-qbdv.vercel.app")],
+            [InlineKeyboardButton("🌐 Веб-сайт", url="https://telegram-bot-kate.vercel.app")],
             [InlineKeyboardButton("❓ Помощь", callback_data="main_help")]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
@@ -318,7 +318,7 @@ class UserHandlers:
 • Для покупок выберите "Продукты"
 • Вопросы? Напишите администратору
 
-🌐 **Веб-сайт:** https://telegram-bot-kate-qbdv.vercel.app
+🌐 **Веб-сайт:** https://telegram-bot-kate.vercel.app
             """
             
             keyboard = [[InlineKeyboardButton("🏠 Главное меню", callback_data="main_menu")]]
@@ -517,7 +517,7 @@ class UserHandlers:
         # Добавляем кнопку веб-версии и главное меню
         keyboard.append([InlineKeyboardButton(
             "🌐 Открыть веб-сайт", 
-            url="https://telegram-bot-kate-qbdv.vercel.app"
+            url="https://telegram-bot-kate.vercel.app"
         )])
         keyboard.append([InlineKeyboardButton(
             "🏠 Главное меню", 
@@ -619,7 +619,7 @@ class UserHandlers:
             )])
         
         # Добавляем дополнительные кнопки
-        keyboard.append([InlineKeyboardButton("🌐 Веб-сайт", url="https://telegram-bot-kate-qbdv.vercel.app")])
+        keyboard.append([InlineKeyboardButton("🌐 Веб-сайт", url="https://telegram-bot-kate.vercel.app")])
         keyboard.append([InlineKeyboardButton("🏠 Главное меню", callback_data="main_menu")])
         
         reply_markup = InlineKeyboardMarkup(keyboard)

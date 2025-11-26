@@ -27,9 +27,16 @@ class Database:
                     registration_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     last_activity TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     stage TEXT DEFAULT 'start',
+                    last_message_id INTEGER,
                     data JSON
                 )
             ''')
+            
+            # Миграция: добавляем поле last_message_id, если его нет
+            try:
+                cursor.execute('ALTER TABLE users ADD COLUMN last_message_id INTEGER')
+            except sqlite3.OperationalError:
+                pass  # Поле уже существует
             
             # Таблица платных продуктов
             cursor.execute('''
@@ -338,4 +345,30 @@ class Database:
                 return cursor.lastrowid
         except Exception as e:
             print(f"Ошибка при создании заказа: {e}")
-            return 0 
+            return 0
+    
+    def update_last_message_id(self, user_id: int, message_id: int) -> bool:
+        """Обновление ID последнего сообщения бота для пользователя"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    UPDATE users SET last_message_id = ? WHERE user_id = ?
+                ''', (message_id, user_id))
+                conn.commit()
+                return True
+        except Exception as e:
+            print(f"Ошибка при обновлении last_message_id: {e}")
+            return False
+    
+    def get_last_message_id(self, user_id: int) -> Optional[int]:
+        """Получение ID последнего сообщения бота для пользователя"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute('SELECT last_message_id FROM users WHERE user_id = ?', (user_id,))
+                row = cursor.fetchone()
+                return row[0] if row else None
+        except Exception as e:
+            print(f"Ошибка при получении last_message_id: {e}")
+            return None 

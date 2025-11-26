@@ -10,6 +10,78 @@ class UserHandlers:
         self.db = database
         self.payment_handler = payment_handler
     
+    async def send_or_edit_message(
+        self, 
+        context: ContextTypes.DEFAULT_TYPE,
+        chat_id: int,
+        user_id: int,
+        text: str,
+        reply_markup=None,
+        parse_mode='Markdown',
+        query=None
+    ):
+        """
+        Умная отправка сообщений: редактирует предыдущее или отправляет новое
+        
+        Args:
+            context: Контекст бота
+            chat_id: ID чата
+            user_id: ID пользователя
+            text: Текст сообщения
+            reply_markup: Клавиатура
+            parse_mode: Режим парсинга (Markdown/HTML)
+            query: CallbackQuery для редактирования
+        """
+        try:
+            # Если есть query (нажата inline-кнопка), редактируем сообщение
+            if query:
+                try:
+                    await query.edit_message_text(
+                        text=text,
+                        reply_markup=reply_markup,
+                        parse_mode=parse_mode
+                    )
+                    # Сохраняем ID отредактированного сообщения
+                    self.db.update_last_message_id(user_id, query.message.message_id)
+                    return query.message.message_id
+                except Exception as e:
+                    # Если не получилось отредактировать (например, текст не изменился)
+                    logger.warning(f"Не удалось отредактировать сообщение: {e}")
+            
+            # Пытаемся удалить предыдущее сообщение бота
+            last_message_id = self.db.get_last_message_id(user_id)
+            if last_message_id:
+                try:
+                    await context.bot.delete_message(
+                        chat_id=chat_id,
+                        message_id=last_message_id
+                    )
+                except Exception as e:
+                    logger.warning(f"Не удалось удалить предыдущее сообщение: {e}")
+            
+            # Отправляем новое сообщение
+            sent_message = await context.bot.send_message(
+                chat_id=chat_id,
+                text=text,
+                reply_markup=reply_markup,
+                parse_mode=parse_mode
+            )
+            
+            # Сохраняем ID нового сообщения
+            self.db.update_last_message_id(user_id, sent_message.message_id)
+            return sent_message.message_id
+            
+        except Exception as e:
+            logger.error(f"Ошибка при отправке/редактировании сообщения: {e}")
+            return None
+    
+    async def delete_user_message(self, context: ContextTypes.DEFAULT_TYPE, chat_id: int, message_id: int):
+        """Удаление сообщения пользователя"""
+        try:
+            await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
+        except Exception as e:
+            logger.warning(f"Не удалось удалить сообщение пользователя: {e}")
+    
     async def start_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Обработка команды /start"""
         user = update.effective_user
@@ -98,8 +170,17 @@ class UserHandlers:
         if current_stage == 'name_input':
             # Пользователь вводит имя
             self.db.update_user_data(user_id, 'name', message_text)
-            self.db.update_user_stage(user_id, 'phone_input')  # Меняем этап на phone_input
-            await self.send_free_materials(chat_id, context, message_text)
+            self.db.update_user_stage(user_id, 'phone_input')
+            
+            # Сразу просим телефон (материалы будут ПОСЛЕ регистрации)
+            phone_text = f"""
+Отлично, {message_text}! 
+
+Теперь давайте договоримся о бесплатном диагностическом созвоне!
+
+📞 Пожалуйста, оставьте ваш номер телефона для связи:
+            """
+            await context.bot.send_message(chat_id=chat_id, text=phone_text)
             
         elif current_stage == 'phone_input':
             # Пользователь вводит телефон
@@ -242,12 +323,29 @@ class UserHandlers:
         elif data == 'main_materials':
             # Показать бесплатные материалы
             user_data = self.db.get_user(user_id)
-            if user_data and user_data.get('name'):
-                await self.send_free_materials(chat_id, context, user_data['name'])
+            
+            # Проверяем полную регистрацию: имя, телефон и stage='registered'
+            is_registered = (
+                user_data and 
+                user_data.get('name') and 
+                user_data.get('phone') and
+                user_data.get('stage') == 'registered'
+            )
+            
+            if is_registered:
+                # Пользователь уже зарегистрирован - просто показываем материалы
+                await self.send_free_materials(chat_id, context, user_data['name'], is_registered=True)
+            elif user_data and user_data.get('name'):
+                # Есть имя, но нет телефона - продолжаем регистрацию
+                await self.send_free_materials(chat_id, context, user_data['name'], is_registered=False)
             else:
+                # Нет даже имени - нужно начать с начала
+                keyboard = [[InlineKeyboardButton("🚀 Начать регистрацию", callback_data="start_registration")]]
+                reply_markup = InlineKeyboardMarkup(keyboard)
                 await context.bot.send_message(
                     chat_id=chat_id,
-                    text="❌ Сначала нужно пройти регистрацию. Используйте /start"
+                    text="❌ Для доступа к материалам нужно пройти быструю регистрацию (1 минута)",
+                    reply_markup=reply_markup
                 )
             
         elif data == 'main_orders':
@@ -340,32 +438,23 @@ class UserHandlers:
             phone = user_data.get('phone', 'Не указан')
             
             success_text = f"""
-✅ **{user_name}, спасибо за регистрацию!**
+✅ **{user_name}, отлично! Регистрация завершена!**
 
-Ваши данные успешно сохранены:
+Ваши данные:
 👤 Имя: {user_name}
 📱 Телефон: {phone}
 
-🎉 Теперь у вас есть полный доступ ко всем функциям бота!
-
-📚 Вы можете:
-• Изучить бесплатные материалы
-• Посмотреть каталог услуг и продуктов
-• Записаться на диагностический созвон
-• Посетить наш веб-сайт
-
-Используйте главное меню для навигации. Я всегда рад помочь! 💜
+🎁 Сейчас вы получите доступ к бесплатным материалам...
             """
-            
-            keyboard = [[InlineKeyboardButton("🏠 Главное меню", callback_data="main_menu")]]
-            reply_markup = InlineKeyboardMarkup(keyboard)
             
             await context.bot.send_message(
                 chat_id=chat_id,
                 text=success_text,
-                reply_markup=reply_markup,
                 parse_mode='Markdown'
             )
+            
+            # Отправляем бесплатные материалы ПОСЛЕ регистрации
+            await self.send_free_materials(chat_id, context, user_name, is_registered=True)
         
         elif data == 'edit_registration':
             # Выбор что редактировать
@@ -443,7 +532,7 @@ class UserHandlers:
         
         await context.bot.send_message(chat_id=chat_id, text=name_text)
     
-    async def send_free_materials(self, chat_id: int, context: ContextTypes.DEFAULT_TYPE, user_name: str):
+    async def send_free_materials(self, chat_id: int, context: ContextTypes.DEFAULT_TYPE, user_name: str, is_registered: bool = False):
         """Отправка бесплатных материалов"""
         materials_text = f"""
 {user_name}, спасибо! 
@@ -467,6 +556,10 @@ class UserHandlers:
             url=ANONYMOUS_QUESTION_LINK
         )])
         
+        # Если пользователь уже зарегистрирован, добавляем кнопку "Главное меню"
+        if is_registered:
+            keyboard.append([InlineKeyboardButton("🏠 Главное меню", callback_data="main_menu")])
+        
         reply_markup = InlineKeyboardMarkup(keyboard)
         
         await context.bot.send_message(
@@ -475,14 +568,14 @@ class UserHandlers:
             reply_markup=reply_markup
         )
         
-        # Отправляем отдельное сообщение с просьбой указать телефон
-        phone_text = """
+        # Просим телефон ТОЛЬКО если пользователь еще не зарегистрирован
+        if not is_registered:
+            phone_text = """
 Теперь давайте договоримся о бесплатном диагностическом созвоне!
 
 📞 Пожалуйста, оставьте ваш номер телефона для связи:
-        """
-        
-        await context.bot.send_message(chat_id=chat_id, text=phone_text)
+            """
+            await context.bot.send_message(chat_id=chat_id, text=phone_text)
     
     async def send_products_menu(self, chat_id: int, context: ContextTypes.DEFAULT_TYPE, user_name: str):
         """Отправка меню продуктов"""

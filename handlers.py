@@ -94,34 +94,48 @@ class UserHandlers:
             last_name=user.last_name
         )
         
-        # Обновляем этап
-        self.db.update_user_stage(user.id, 'gender_selection')
+        # Проверяем, зарегистрирован ли пользователь
+        user_data = self.db.get_user(user.id)
+        is_registered = (
+            user_data and 
+            user_data.get('name') and 
+            user_data.get('phone') and
+            user_data.get('stage') == 'registered'
+        )
         
-        # Приветственное сообщение
-        welcome_text = f"""
+        if is_registered:
+            # Если пользователь уже зарегистрирован, показываем главное меню
+            logger.info(f"Пользователь {user.id} уже зарегистрирован, показываем главное меню")
+            await self.show_main_menu(chat_id, user.id, context)
+        else:
+            # Обновляем этап только для новых/незарегистрированных пользователей
+            self.db.update_user_stage(user.id, 'gender_selection')
+            
+            # Приветственное сообщение
+            welcome_text = f"""
 🌟 **Добро пожаловать, {user.first_name}!**
 
 Я бот-помощник, который поможет вам получить доступ к ценным материалам 
 и узнать больше о нашем методе работы.
 
 Для начала давайте познакомимся! Какого вы пола?
-        """
-        
-        keyboard = [
-            [
-                InlineKeyboardButton("👨 Мужчина", callback_data="gender_male"),
-                InlineKeyboardButton("👩 Женщина", callback_data="gender_female")
-            ],
-            [InlineKeyboardButton("🏠 Главное меню", callback_data="main_menu")]
-        ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        
-        await context.bot.send_message(
-            chat_id=chat_id,
-            text=welcome_text,
-            reply_markup=reply_markup,
-            parse_mode='Markdown'
-        )
+            """
+            
+            keyboard = [
+                [
+                    InlineKeyboardButton("👨 Мужчина", callback_data="gender_male"),
+                    InlineKeyboardButton("👩 Женщина", callback_data="gender_female")
+                ],
+                [InlineKeyboardButton("🏠 Главное меню", callback_data="main_menu")]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            
+            await context.bot.send_message(
+                chat_id=chat_id,
+                text=welcome_text,
+                reply_markup=reply_markup,
+                parse_mode='Markdown'
+            )
     
     async def help_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Обработка команды /help"""
@@ -331,6 +345,10 @@ class UserHandlers:
             # Показать бесплатные материалы
             user_data = self.db.get_user(user_id)
             
+            # Логирование для отладки
+            logger.info(f"Запрос материалов от user_id={user_id}")
+            logger.info(f"user_data: name={user_data.get('name')}, phone={user_data.get('phone')}, stage={user_data.get('stage')}")
+            
             # Проверяем полную регистрацию: имя, телефон и stage='registered'
             is_registered = (
                 user_data and 
@@ -339,14 +357,19 @@ class UserHandlers:
                 user_data.get('stage') == 'registered'
             )
             
+            logger.info(f"is_registered={is_registered}")
+            
             if is_registered:
                 # Пользователь уже зарегистрирован - просто показываем материалы
+                logger.info("Показываем материалы зарегистрированному пользователю")
                 await self.send_free_materials(chat_id, context, user_data['name'], is_registered=True)
             elif user_data and user_data.get('name'):
                 # Есть имя, но нет телефона - продолжаем регистрацию
+                logger.info("Показываем материалы + просим телефон")
                 await self.send_free_materials(chat_id, context, user_data['name'], is_registered=False)
             else:
                 # Нет даже имени - нужно начать с начала
+                logger.info("Требуем полную регистрацию")
                 keyboard = [[InlineKeyboardButton("🚀 Начать регистрацию", callback_data="start_registration")]]
                 reply_markup = InlineKeyboardMarkup(keyboard)
                 await self.send_or_edit_message(
@@ -450,11 +473,14 @@ class UserHandlers:
         
         elif data == 'confirm_registration':
             # Подтверждение регистрации
+            logger.info(f"Подтверждение регистрации user_id={user_id}")
             self.db.update_user_stage(user_id, 'registered')
             
             user_data = self.db.get_user(user_id)
             user_name = user_data.get('name', 'пользователь')
             phone = user_data.get('phone', 'Не указан')
+            
+            logger.info(f"После update_user_stage: name={user_name}, phone={phone}, stage={user_data.get('stage')}")
             
             success_text = f"""
 ✅ **{user_name}, отлично! Регистрация завершена!**
@@ -473,6 +499,7 @@ class UserHandlers:
             )
             
             # Отправляем бесплатные материалы ПОСЛЕ регистрации
+            logger.info(f"Отправка материалов с is_registered=True")
             await self.send_free_materials(chat_id, context, user_name, is_registered=True)
         
         elif data == 'edit_registration':

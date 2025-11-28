@@ -626,9 +626,14 @@ class UserHandlers:
             )
             
         elif data.startswith('product_'):
-            # Обработка выбора продукта
+            # Обработка выбора продукта - показываем описание
             product_id = data.split('_')[1]
-            await self.handle_product_selection(chat_id, context, product_id, user_id)
+            await self.show_product_details(chat_id, context, product_id, user_id, query=query)
+        
+        elif data.startswith('buy_product_'):
+            # Обработка покупки продукта - переходим к оплате
+            product_id = data.split('_')[2]
+            await self.handle_product_purchase(chat_id, context, product_id, user_id)
             
         elif data == 'main_menu':
             # Показать главное меню
@@ -1245,8 +1250,54 @@ class UserHandlers:
             parse_mode='Markdown'
         )
     
-    async def handle_product_selection(self, chat_id: int, context: ContextTypes.DEFAULT_TYPE, product_id: str, user_id: int):
-        """Обработка выбора продукта"""
+    async def show_product_details(self, chat_id: int, context: ContextTypes.DEFAULT_TYPE, product_id: str, user_id: int, query=None):
+        """Показать описание продукта"""
+        products = self.db.get_products()
+        selected_product = None
+        
+        for product in products:
+            if str(product['id']) == product_id:
+                selected_product = product
+                break
+        
+        if not selected_product:
+            await context.bot.send_message(
+                chat_id=chat_id,
+                text="❌ Продукт не найден."
+            )
+            return
+        
+        # Формируем описание продукта
+        product_details = f"""
+📦 **{selected_product['name']}**
+
+💰 **Цена:** {selected_product['price']} руб.
+
+📝 **Описание:**
+{selected_product.get('description', 'Описание отсутствует')}
+
+Выберите действие:
+        """
+        
+        keyboard = [
+            [InlineKeyboardButton("💳 Купить", callback_data=f"buy_product_{product_id}")],
+            [InlineKeyboardButton("◀️ Назад в каталог", callback_data="main_shop")],
+            [InlineKeyboardButton("🏠 Главное меню", callback_data="main_menu")]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        
+        await self.send_or_edit_message(
+            context=context,
+            chat_id=chat_id,
+            user_id=user_id,
+            text=product_details,
+            reply_markup=reply_markup,
+            parse_mode='Markdown',
+            query=query
+        )
+    
+    async def handle_product_purchase(self, chat_id: int, context: ContextTypes.DEFAULT_TYPE, product_id: str, user_id: int):
+        """Обработка покупки продукта - переход к оплате"""
         products = self.db.get_products()
         selected_product = None
         

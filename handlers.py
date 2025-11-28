@@ -138,63 +138,70 @@ class UserHandlers:
             user_data.get('stage') == 'registered'
         )
         
+        # Приветственное сообщение с представлением
         if is_registered:
-            # Если пользователь уже зарегистрирован, показываем главное меню
-            logger.info(f"Пользователь {user.id} уже зарегистрирован, показываем главное меню")
-            await self.show_main_menu(chat_id, user.id, context)
+            welcome_text = f"""
+🌟 **Добро пожаловать обратно, {user_data.get('name', user.first_name)}!**
+
+Я бот-помощник Екатерины - кризисного целителя.
+
+Готов помочь вам с:
+• 📚 Бесплатными материалами
+• 💎 Продуктами и услугами
+• 📋 Вашими заказами
+• 👤 Управлением профилем
+
+Выберите, что вас интересует:
+            """
         else:
-            # Обновляем этап только для новых/незарегистрированных пользователей
-            self.db.update_user_stage(user.id, 'gender_selection')
-            
-            # Приветственное сообщение
             welcome_text = f"""
 🌟 **Добро пожаловать, {user.first_name}!**
 
-Я бот-помощник, который поможет вам получить доступ к ценным материалам 
-и узнать больше о нашем методе работы.
+Я бот-помощник Екатерины - кризисного целителя.
 
-Для начала давайте познакомимся! Какого вы пола?
+Я помогу вам:
+• 📚 Получить доступ к ценным материалам
+• 💎 Ознакомиться с продуктами и услугами
+• 📋 Управлять заказами
+• 👤 Настроить профиль
+
+Для доступа ко всем функциям рекомендую пройти быструю регистрацию (1 минута).
+
+Выберите, что вас интересует:
             """
-            
-            keyboard = [
-                [
-                    InlineKeyboardButton("👨 Мужчина", callback_data="gender_male"),
-                    InlineKeyboardButton("👩 Женщина", callback_data="gender_female")
-                ]
-            ]
-            reply_markup = InlineKeyboardMarkup(keyboard)
-            
-            sent_message = await context.bot.send_message(
-                chat_id=chat_id,
-                text=welcome_text,
-                reply_markup=reply_markup,
-                parse_mode='Markdown'
-            )
-            
-            # Сохраняем ID приветственного сообщения для последующего удаления
-            self.db.update_last_message_id(user.id, sent_message.message_id)
-            logger.info(f"📨 Отправлено приветственное сообщение {sent_message.message_id}")
+        
+        # Показываем главное меню с приветствием
+        await self.show_main_menu_with_welcome(chat_id, user.id, context, welcome_text, is_registered=is_registered)
     
     async def help_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Обработка команды /help"""
         await self.show_main_menu(update.effective_chat.id, update.effective_user.id, context)
     
-    async def show_main_menu(self, chat_id: int, user_id: int, context: ContextTypes.DEFAULT_TYPE, query=None):
+    async def show_main_menu(self, chat_id: int, user_id: int, context: ContextTypes.DEFAULT_TYPE, query=None, welcome_text=None, show_registration_button=False):
         """Показать главное меню"""
-        menu_text = """
+        if welcome_text:
+            menu_text = welcome_text
+        else:
+            menu_text = """
 🤖 **Kate Bot - Ваш помощник!**
 
 Выберите, что хотите сделать:
-        """
+            """
         
-        keyboard = [
+        keyboard = []
+        
+        # Если нужно показать кнопку регистрации (для незарегистрированных)
+        if show_registration_button:
+            keyboard.append([InlineKeyboardButton("🚀 Начать регистрацию", callback_data="start_registration")])
+        
+        keyboard.extend([
             [InlineKeyboardButton("💎 Продукты", callback_data="main_shop")],
             [InlineKeyboardButton("📚 Бесплатные материалы", callback_data="main_materials")],
             [InlineKeyboardButton("📋 Мои заказы", callback_data="main_orders")],
             [InlineKeyboardButton("👤 Мой профиль", callback_data="main_profile")],
             [InlineKeyboardButton("🌐 Веб-сайт", url="https://telegram-bot-kate.vercel.app")],
             [InlineKeyboardButton("❓ Помощь", callback_data="main_help")]
-        ]
+        ])
         reply_markup = InlineKeyboardMarkup(keyboard)
         
         await self.send_or_edit_message(
@@ -206,6 +213,10 @@ class UserHandlers:
             parse_mode='Markdown',
             query=query
         )
+    
+    async def show_main_menu_with_welcome(self, chat_id: int, user_id: int, context: ContextTypes.DEFAULT_TYPE, welcome_text: str, is_registered: bool = False):
+        """Показать главное меню с приветствием"""
+        await self.show_main_menu(chat_id, user_id, context, welcome_text=welcome_text, show_registration_button=not is_registered)
     
     async def handle_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Обработка текстовых сообщений"""
@@ -1140,8 +1151,34 @@ class UserHandlers:
             )
         
         elif data == 'start_registration':
-            # Начать регистрацию заново
-            await self.start_command(update, context)
+            # Начать регистрацию
+            self.db.update_user_stage(user_id, 'gender_selection')
+            
+            welcome_text = f"""
+🌟 **Давайте познакомимся!**
+
+Для доступа ко всем функциям бота нужно пройти быструю регистрацию (1 минута).
+
+Какого вы пола?
+            """
+            
+            keyboard = [
+                [
+                    InlineKeyboardButton("👨 Мужчина", callback_data="gender_male"),
+                    InlineKeyboardButton("👩 Женщина", callback_data="gender_female")
+                ]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            
+            await self.send_or_edit_message(
+                context=context,
+                chat_id=chat_id,
+                user_id=user_id,
+                text=welcome_text,
+                reply_markup=reply_markup,
+                parse_mode='Markdown',
+                query=query
+            )
         
         elif data == 'back_to_confirmation':
             # Возврат к экрану подтверждения

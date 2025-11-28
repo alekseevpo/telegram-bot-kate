@@ -74,6 +74,29 @@ class Database:
                 )
             ''')
             
+            # Таблица корзины
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS cart (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER NOT NULL,
+                    product_id INTEGER NOT NULL,
+                    quantity INTEGER DEFAULT 1,
+                    added_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(user_id, product_id)
+                )
+            ''')
+            
+            # Таблица избранного
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS favorites (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER NOT NULL,
+                    product_id INTEGER NOT NULL,
+                    added_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(user_id, product_id)
+                )
+            ''')
+            
             conn.commit()
     
     def add_user(self, user_id: int, username: str = None, first_name: str = None, last_name: str = None) -> bool:
@@ -371,4 +394,138 @@ class Database:
                 return row[0] if row else None
         except Exception as e:
             print(f"Ошибка при получении last_message_id: {e}")
-            return None 
+            return None
+    
+    # ============================================
+    # КОРЗИНА
+    # ============================================
+    
+    def add_to_cart(self, user_id: int, product_id: int, quantity: int = 1) -> bool:
+        """Добавление продукта в корзину"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    INSERT OR REPLACE INTO cart (user_id, product_id, quantity, added_date)
+                    VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+                ''', (user_id, product_id, quantity))
+                conn.commit()
+                return True
+        except Exception as e:
+            print(f"Ошибка при добавлении в корзину: {e}")
+            return False
+    
+    def remove_from_cart(self, user_id: int, product_id: int) -> bool:
+        """Удаление продукта из корзины"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute('DELETE FROM cart WHERE user_id = ? AND product_id = ?', (user_id, product_id))
+                conn.commit()
+                return True
+        except Exception as e:
+            print(f"Ошибка при удалении из корзины: {e}")
+            return False
+    
+    def get_cart(self, user_id: int) -> List[Dict]:
+        """Получение корзины пользователя"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    SELECT c.*, p.name, p.price, p.description
+                    FROM cart c
+                    JOIN products p ON c.product_id = p.id
+                    WHERE c.user_id = ?
+                    ORDER BY c.added_date DESC
+                ''', (user_id,))
+                rows = cursor.fetchall()
+                columns = [description[0] for description in cursor.description]
+                return [dict(zip(columns, row)) for row in rows]
+        except Exception as e:
+            print(f"Ошибка при получении корзины: {e}")
+            return []
+    
+    def clear_cart(self, user_id: int) -> bool:
+        """Очистка корзины пользователя"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute('DELETE FROM cart WHERE user_id = ?', (user_id,))
+                conn.commit()
+                return True
+        except Exception as e:
+            print(f"Ошибка при очистке корзины: {e}")
+            return False
+    
+    def is_in_cart(self, user_id: int, product_id: int) -> bool:
+        """Проверка, есть ли продукт в корзине"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute('SELECT 1 FROM cart WHERE user_id = ? AND product_id = ?', (user_id, product_id))
+                return cursor.fetchone() is not None
+        except Exception as e:
+            print(f"Ошибка при проверке корзины: {e}")
+            return False
+    
+    # ============================================
+    # ИЗБРАННОЕ
+    # ============================================
+    
+    def add_to_favorites(self, user_id: int, product_id: int) -> bool:
+        """Добавление продукта в избранное"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    INSERT OR IGNORE INTO favorites (user_id, product_id, added_date)
+                    VALUES (?, ?, CURRENT_TIMESTAMP)
+                ''', (user_id, product_id))
+                conn.commit()
+                return True
+        except Exception as e:
+            print(f"Ошибка при добавлении в избранное: {e}")
+            return False
+    
+    def remove_from_favorites(self, user_id: int, product_id: int) -> bool:
+        """Удаление продукта из избранного"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute('DELETE FROM favorites WHERE user_id = ? AND product_id = ?', (user_id, product_id))
+                conn.commit()
+                return True
+        except Exception as e:
+            print(f"Ошибка при удалении из избранного: {e}")
+            return False
+    
+    def get_favorites(self, user_id: int) -> List[Dict]:
+        """Получение избранного пользователя"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    SELECT f.*, p.name, p.price, p.description
+                    FROM favorites f
+                    JOIN products p ON f.product_id = p.id
+                    WHERE f.user_id = ?
+                    ORDER BY f.added_date DESC
+                ''', (user_id,))
+                rows = cursor.fetchall()
+                columns = [description[0] for description in cursor.description]
+                return [dict(zip(columns, row)) for row in rows]
+        except Exception as e:
+            print(f"Ошибка при получении избранного: {e}")
+            return []
+    
+    def is_in_favorites(self, user_id: int, product_id: int) -> bool:
+        """Проверка, есть ли продукт в избранном"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute('SELECT 1 FROM favorites WHERE user_id = ? AND product_id = ?', (user_id, product_id))
+                return cursor.fetchone() is not None
+        except Exception as e:
+            print(f"Ошибка при проверке избранного: {e}")
+            return False 

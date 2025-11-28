@@ -1,5 +1,6 @@
 import logging
 import re
+import json
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 from config import *
@@ -634,6 +635,46 @@ class UserHandlers:
             # Обработка покупки продукта - переходим к оплате
             product_id = data.split('_')[2]
             await self.handle_product_purchase(chat_id, context, product_id, user_id)
+        
+        elif data.startswith('add_cart_'):
+            # Добавление продукта в корзину
+            product_id = int(data.split('_')[2])
+            if self.db.add_to_cart(user_id, product_id):
+                await query.answer("✅ Товар добавлен в корзину!", show_alert=False)
+                # Обновляем описание продукта с новыми кнопками
+                await self.show_product_details(chat_id, context, str(product_id), user_id, query=query)
+            else:
+                await query.answer("❌ Ошибка при добавлении в корзину", show_alert=True)
+        
+        elif data.startswith('remove_cart_'):
+            # Удаление продукта из корзины
+            product_id = int(data.split('_')[2])
+            if self.db.remove_from_cart(user_id, product_id):
+                await query.answer("✅ Товар удален из корзины", show_alert=False)
+                # Обновляем описание продукта с новыми кнопками
+                await self.show_product_details(chat_id, context, str(product_id), user_id, query=query)
+            else:
+                await query.answer("❌ Ошибка при удалении из корзины", show_alert=True)
+        
+        elif data.startswith('add_fav_'):
+            # Добавление продукта в избранное
+            product_id = int(data.split('_')[2])
+            if self.db.add_to_favorites(user_id, product_id):
+                await query.answer("❤️ Товар добавлен в избранное!", show_alert=False)
+                # Обновляем описание продукта с новыми кнопками
+                await self.show_product_details(chat_id, context, str(product_id), user_id, query=query)
+            else:
+                await query.answer("❌ Ошибка при добавлении в избранное", show_alert=True)
+        
+        elif data.startswith('remove_fav_'):
+            # Удаление продукта из избранного
+            product_id = int(data.split('_')[2])
+            if self.db.remove_from_favorites(user_id, product_id):
+                await query.answer("✅ Товар удален из избранного", show_alert=False)
+                # Обновляем описание продукта с новыми кнопками
+                await self.show_product_details(chat_id, context, str(product_id), user_id, query=query)
+            else:
+                await query.answer("❌ Ошибка при удалении из избранного", show_alert=True)
             
         elif data == 'main_menu':
             # Показать главное меню
@@ -693,29 +734,47 @@ class UserHandlers:
             
         elif data == 'main_orders':
             # Показать заказы пользователя
-            orders = self.db.get_user_orders(user_id)
-            if orders:
-                orders_text = "📋 **Ваши заказы:**\n\n"
-                for order in orders:
-                    orders_text += f"🆔 Заказ #{order['id']}\n"
-                    orders_text += f"📅 Дата: {order['order_date']}\n"
-                    orders_text += f"💰 Сумма: {order['total_amount']} руб.\n"
-                    orders_text += f"📊 Статус: {order['status']}\n\n"
+            await self.show_orders_menu(chat_id, context, user_id, query=query)
+        
+        elif data.startswith('order_details_'):
+            # Показать детали заказа
+            order_id = int(data.split('_')[2])
+            await self.show_order_details(chat_id, context, user_id, order_id, query=query)
+        
+        elif data.startswith('pay_order_'):
+            # Оплата заказа
+            order_id = int(data.split('_')[2])
+            await self.pay_order(chat_id, context, user_id, order_id)
+        
+        elif data == 'create_order_from_cart':
+            # Создание заказа из корзины
+            await self.create_order_from_cart(chat_id, context, user_id, query=query)
+        
+        elif data == 'clear_cart':
+            # Очистка корзины
+            if self.db.clear_cart(user_id):
+                await query.answer("✅ Корзина очищена", show_alert=False) if query else None
+                cart_text = """
+🛒 **Корзина очищена**
+
+Ваша корзина теперь пуста.
+                """
+                keyboard = [
+                    [InlineKeyboardButton("💎 В каталог", callback_data="main_shop")],
+                    [InlineKeyboardButton("🏠 Главное меню", callback_data="main_menu")]
+                ]
+                reply_markup = InlineKeyboardMarkup(keyboard)
+                await self.send_or_edit_message(
+                    context=context,
+                    chat_id=chat_id,
+                    user_id=user_id,
+                    text=cart_text,
+                    reply_markup=reply_markup,
+                    parse_mode='Markdown',
+                    query=query
+                )
             else:
-                orders_text = "📋 У вас пока нет заказов."
-            
-            keyboard = [[InlineKeyboardButton("🏠 Главное меню", callback_data="main_menu")]]
-            reply_markup = InlineKeyboardMarkup(keyboard)
-            
-            await self.send_or_edit_message(
-                context=context,
-                chat_id=chat_id,
-                user_id=user_id,
-                text=orders_text,
-                reply_markup=reply_markup,
-                parse_mode='Markdown',
-                query=query
-            )
+                await query.answer("❌ Ошибка при очистке корзины", show_alert=True) if query else None
             
         elif data == 'main_profile':
             # Показать профиль пользователя
@@ -1267,6 +1326,10 @@ class UserHandlers:
             )
             return
         
+        # Проверяем, есть ли продукт в корзине и избранном
+        in_cart = self.db.is_in_cart(user_id, int(product_id))
+        in_favorites = self.db.is_in_favorites(user_id, int(product_id))
+        
         # Формируем описание продукта
         product_details = f"""
 📦 **{selected_product['name']}**
@@ -1279,11 +1342,27 @@ class UserHandlers:
 Выберите действие:
         """
         
-        keyboard = [
-            [InlineKeyboardButton("💳 Купить", callback_data=f"buy_product_{product_id}")],
-            [InlineKeyboardButton("◀️ Назад в каталог", callback_data="main_shop")],
-            [InlineKeyboardButton("🏠 Главное меню", callback_data="main_menu")]
-        ]
+        keyboard = []
+        
+        # Кнопка корзины
+        if in_cart:
+            keyboard.append([InlineKeyboardButton("🛒 Удалить из корзины", callback_data=f"remove_cart_{product_id}")])
+        else:
+            keyboard.append([InlineKeyboardButton("🛒 Добавить в корзину", callback_data=f"add_cart_{product_id}")])
+        
+        # Кнопка избранного
+        if in_favorites:
+            keyboard.append([InlineKeyboardButton("❤️ Удалить из избранного", callback_data=f"remove_fav_{product_id}")])
+        else:
+            keyboard.append([InlineKeyboardButton("🤍 Добавить в избранное", callback_data=f"add_fav_{product_id}")])
+        
+        # Кнопка покупки
+        keyboard.append([InlineKeyboardButton("💳 Купить", callback_data=f"buy_product_{product_id}")])
+        
+        # Навигация
+        keyboard.append([InlineKeyboardButton("◀️ Назад в каталог", callback_data="main_shop")])
+        keyboard.append([InlineKeyboardButton("🏠 Главное меню", callback_data="main_menu")])
+        
         reply_markup = InlineKeyboardMarkup(keyboard)
         
         await self.send_or_edit_message(
@@ -1414,13 +1493,37 @@ class UserHandlers:
         user_id = update.effective_user.id
         chat_id = update.effective_chat.id
         
-        # Корзина пока не реализована, показываем заказы
-        cart_text = "🛒 **Корзина**\n\nФункция корзины временно недоступна.\nВы можете купить продукты напрямую из каталога."
+        cart_items = self.db.get_cart(user_id)
         
-        keyboard = [
-            [InlineKeyboardButton("💎 В каталог", callback_data="main_shop")],
-            [InlineKeyboardButton("🏠 Главное меню", callback_data="main_menu")]
-        ]
+        if not cart_items:
+            cart_text = """
+🛒 **Ваша корзина пуста**
+
+Добавьте товары из каталога, чтобы оформить заказ.
+            """
+            keyboard = [
+                [InlineKeyboardButton("💎 В каталог", callback_data="main_shop")],
+                [InlineKeyboardButton("🏠 Главное меню", callback_data="main_menu")]
+            ]
+        else:
+            total = sum(item['price'] * item['quantity'] for item in cart_items)
+            cart_text = "🛒 **Ваша корзина:**\n\n"
+            
+            for item in cart_items:
+                cart_text += f"""
+📦 **{item['name']}**
+💰 {item['price']} руб. × {item['quantity']} = {item['price'] * item['quantity']} руб.
+"""
+            
+            cart_text += f"\n💵 **Итого:** {total} руб."
+            
+            keyboard = [
+                [InlineKeyboardButton("💳 Оформить заказ", callback_data="create_order_from_cart")],
+                [InlineKeyboardButton("🗑️ Очистить корзину", callback_data="clear_cart")],
+                [InlineKeyboardButton("💎 В каталог", callback_data="main_shop")],
+                [InlineKeyboardButton("🏠 Главное меню", callback_data="main_menu")]
+            ]
+        
         reply_markup = InlineKeyboardMarkup(keyboard)
         
         await context.bot.send_message(
@@ -1429,6 +1532,258 @@ class UserHandlers:
             reply_markup=reply_markup,
             parse_mode='Markdown'
         )
+    
+    async def show_orders_menu(self, chat_id: int, context: ContextTypes.DEFAULT_TYPE, user_id: int, query=None):
+        """Показать меню заказов"""
+        orders = self.db.get_user_orders(user_id)
+        cart_items = self.db.get_cart(user_id)
+        
+        if not orders and not cart_items:
+            orders_text = """
+📋 **Мои заказы**
+
+У вас пока нет заказов.
+
+Добавьте товары в корзину и оформите заказ!
+            """
+            keyboard = [
+                [InlineKeyboardButton("💎 В каталог", callback_data="main_shop")],
+                [InlineKeyboardButton("🏠 Главное меню", callback_data="main_menu")]
+            ]
+        else:
+            orders_text = "📋 **Мои заказы**\n\n"
+            
+            # Показываем прошлые заказы
+            if orders:
+                orders_text += "📦 **Прошлые заказы:**\n\n"
+                for order in orders[:10]:  # Показываем последние 10 заказов
+                    status_emoji = "✅" if order['status'] == 'paid' else "⏳" if order['status'] == 'pending' else "❌"
+                    orders_text += f"{status_emoji} Заказ #{order['id']} - {order['total_amount']} руб. ({order['status']})\n"
+                    orders_text += f"   📅 {order['order_date']}\n\n"
+            
+            # Если есть товары в корзине, предлагаем оформить заказ
+            if cart_items:
+                total = sum(item['price'] * item['quantity'] for item in cart_items)
+                orders_text += f"\n🛒 **В корзине:** {len(cart_items)} товар(ов) на сумму {total} руб.\n"
+            
+            keyboard = []
+            
+            # Кнопки для заказов
+            if orders:
+                for order in orders[:5]:  # Показываем кнопки для первых 5 заказов
+                    keyboard.append([InlineKeyboardButton(
+                        f"📦 Заказ #{order['id']} - {order['total_amount']} руб.",
+                        callback_data=f"order_details_{order['id']}"
+                    )])
+            
+            # Кнопка оформления заказа из корзины
+            if cart_items:
+                keyboard.append([InlineKeyboardButton("💳 Оформить заказ из корзины", callback_data="create_order_from_cart")])
+            
+            keyboard.append([InlineKeyboardButton("🏠 Главное меню", callback_data="main_menu")])
+        
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        
+        await self.send_or_edit_message(
+            context=context,
+            chat_id=chat_id,
+            user_id=user_id,
+            text=orders_text,
+            reply_markup=reply_markup,
+            parse_mode='Markdown',
+            query=query
+        )
+    
+    async def show_order_details(self, chat_id: int, context: ContextTypes.DEFAULT_TYPE, user_id: int, order_id: int, query=None):
+        """Показать детали заказа"""
+        order = self.db.get_order(order_id)
+        
+        if not order or order['user_id'] != user_id:
+            await context.bot.send_message(
+                chat_id=chat_id,
+                text="❌ Заказ не найден."
+            )
+            return
+        
+        # Парсим данные заказа
+        order_items = []
+        if order.get('data'):
+            try:
+                if isinstance(order['data'], str):
+                    order_items = json.loads(order['data'])
+                else:
+                    order_items = order['data']
+            except:
+                order_items = []
+        
+        status_text = {
+            'pending': '⏳ Ожидает оплаты',
+            'paid': '✅ Оплачен',
+            'cancelled': '❌ Отменен'
+        }.get(order['status'], order['status'])
+        
+        order_details = f"""
+📦 **Заказ #{order_id}**
+
+📅 Дата: {order['order_date']}
+💰 Сумма: {order['total_amount']} руб.
+📊 Статус: {status_text}
+
+📋 **Состав заказа:**
+"""
+        
+        if order_items:
+            for item in order_items:
+                if isinstance(item, dict):
+                    product_name = item.get('name', 'Неизвестный товар')
+                    quantity = item.get('quantity', 1)
+                    price = item.get('price', 0)
+                    order_details += f"• {product_name} × {quantity} = {price * quantity} руб.\n"
+        else:
+            order_details += "• Детали недоступны\n"
+        
+        keyboard = []
+        
+        # Если заказ не оплачен, показываем кнопку оплаты
+        if order['status'] == 'pending':
+            keyboard.append([InlineKeyboardButton("💳 Оплатить заказ", callback_data=f"pay_order_{order_id}")])
+        
+        keyboard.append([InlineKeyboardButton("◀️ Назад к заказам", callback_data="main_orders")])
+        keyboard.append([InlineKeyboardButton("🏠 Главное меню", callback_data="main_menu")])
+        
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        
+        await self.send_or_edit_message(
+            context=context,
+            chat_id=chat_id,
+            user_id=user_id,
+            text=order_details,
+            reply_markup=reply_markup,
+            parse_mode='Markdown',
+            query=query
+        )
+    
+    async def create_order_from_cart(self, chat_id: int, context: ContextTypes.DEFAULT_TYPE, user_id: int, query=None):
+        """Создание заказа из корзины"""
+        cart_items = self.db.get_cart(user_id)
+        
+        if not cart_items:
+            await query.answer("❌ Корзина пуста", show_alert=True) if query else None
+            return
+        
+        # Вычисляем общую сумму
+        total = sum(item['price'] * item['quantity'] for item in cart_items)
+        
+        # Формируем данные заказа
+        order_items = []
+        for item in cart_items:
+            order_items.append({
+                'product_id': item['product_id'],
+                'name': item['name'],
+                'price': item['price'],
+                'quantity': item['quantity']
+            })
+        
+        # Создаем заказ
+        order_data = {
+            'user_id': user_id,
+            'total_amount': total,
+            'status': 'pending',
+            'items': order_items
+        }
+        
+        order_id = self.db.add_order(order_data)
+        
+        if order_id:
+            # Очищаем корзину
+            self.db.clear_cart(user_id)
+            
+            success_text = f"""
+✅ **Заказ #{order_id} создан!**
+
+💰 Сумма заказа: {total} руб.
+
+📋 Состав заказа:
+"""
+            for item in order_items:
+                success_text += f"• {item['name']} × {item['quantity']} = {item['price'] * item['quantity']} руб.\n"
+            
+            success_text += "\n💳 Вы можете оплатить заказ сейчас или позже."
+            
+            keyboard = [
+                [InlineKeyboardButton("💳 Оплатить заказ", callback_data=f"pay_order_{order_id}")],
+                [InlineKeyboardButton("📋 Мои заказы", callback_data="main_orders")],
+                [InlineKeyboardButton("🏠 Главное меню", callback_data="main_menu")]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            
+            await self.send_or_edit_message(
+                context=context,
+                chat_id=chat_id,
+                user_id=user_id,
+                text=success_text,
+                reply_markup=reply_markup,
+                parse_mode='Markdown',
+                query=query
+            )
+        else:
+            await context.bot.send_message(
+                chat_id=chat_id,
+                text="❌ Ошибка при создании заказа. Попробуйте позже."
+            )
+    
+    async def pay_order(self, chat_id: int, context: ContextTypes.DEFAULT_TYPE, user_id: int, order_id: int):
+        """Оплата заказа"""
+        order = self.db.get_order(order_id)
+        
+        if not order or order['user_id'] != user_id:
+            await context.bot.send_message(
+                chat_id=chat_id,
+                text="❌ Заказ не найден."
+            )
+            return
+        
+        if order['status'] == 'paid':
+            await context.bot.send_message(
+                chat_id=chat_id,
+                text="✅ Этот заказ уже оплачен."
+            )
+            return
+        
+        # Если есть обработчик платежей - используем его
+        if self.payment_handler:
+            # Для оплаты заказа нужно отправить инвойс
+            # Пока просто обновляем статус (в реальности здесь будет вызов платежной системы)
+            await context.bot.send_message(
+                chat_id=chat_id,
+                text=f"💳 Оплата заказа #{order_id} на сумму {order['total_amount']} руб.\n\nПлатежная система будет подключена позже."
+            )
+        else:
+            # Если платежей нет - показываем информацию для связи с админом
+            payment_text = f"""
+💳 **Оплата заказа #{order_id}**
+
+💰 Сумма к оплате: {order['total_amount']} руб.
+
+Для оплаты свяжитесь с администратором:
+📧 Email: admin@example.com
+📱 Telegram: @admin_username
+
+Или используйте команду /admin для связи.
+            """
+            
+            keyboard = [
+                [InlineKeyboardButton("📋 Мои заказы", callback_data="main_orders")],
+                [InlineKeyboardButton("🏠 Главное меню", callback_data="main_menu")]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            
+            await context.bot.send_message(
+                chat_id=chat_id,
+                text=payment_text,
+                reply_markup=reply_markup,
+                parse_mode='Markdown'
+            )
     
     async def add_to_cart_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Добавить товар в корзину"""

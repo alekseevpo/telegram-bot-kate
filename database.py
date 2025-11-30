@@ -528,4 +528,45 @@ class Database:
                 return cursor.fetchone() is not None
         except Exception as e:
             print(f"Ошибка при проверке избранного: {e}")
+            return False
+    
+    def reset_user_profile(self, user_id: int) -> bool:
+        """
+        Сброс профиля пользователя (удаление регистрационных данных)
+        
+        Удаляет:
+        - Имя, телефон, пол
+        - Сбрасывает stage на 'start'
+        - Очищает корзину и избранное
+        
+        Сохраняет:
+        - Базовую информацию (user_id, username, first_name, last_name)
+        - Историю заказов
+        - Дату регистрации
+        """
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                
+                # Сброс регистрационных данных
+                cursor.execute('''
+                    UPDATE users 
+                    SET name = NULL, 
+                        phone = NULL, 
+                        gender = NULL,
+                        stage = 'start',
+                        last_activity = CURRENT_TIMESTAMP
+                    WHERE user_id = ?
+                ''', (user_id,))
+                
+                # Очистка корзины
+                cursor.execute('DELETE FROM cart WHERE user_id = ?', (user_id,))
+                
+                # Очистка избранного
+                cursor.execute('DELETE FROM favorites WHERE user_id = ?', (user_id,))
+                
+                conn.commit()
+                return True
+        except Exception as e:
+            print(f"Ошибка при сбросе профиля: {e}")
             return False 

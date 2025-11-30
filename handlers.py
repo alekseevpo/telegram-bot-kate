@@ -988,6 +988,7 @@ A: "👤 Мой профиль" → "Редактировать профиль".
             
             keyboard = [
                 [InlineKeyboardButton("✏️ Редактировать профиль", callback_data="edit_profile")],
+                [InlineKeyboardButton("🗑️ Удалить профиль", callback_data="delete_profile")],
                 [InlineKeyboardButton("🏠 Главное меню", callback_data="main_menu")]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
@@ -1056,6 +1057,112 @@ A: "👤 Мой профиль" → "Редактировать профиль".
                 text=name_request_text,
                 query=query
             )
+        
+        elif data == 'delete_profile':
+            # Запрос подтверждения удаления профиля
+            user_data = self.db.get_user(user_id)
+            user_name = user_data.get('name', 'пользователь') if user_data else 'пользователь'
+            
+            delete_warning_text = f"""
+⚠️ **ВНИМАНИЕ! Удаление профиля**
+
+{user_name}, вы собираетесь удалить свой профиль.
+
+🗑️ **Что будет удалено:**
+• Ваше имя, телефон и пол
+• Корзина покупок
+• Избранные товары
+• Статус регистрации
+
+✅ **Что сохранится:**
+• История заказов (для отчетности)
+• Базовая информация (ID, username)
+
+⚠️ **Это действие нельзя отменить!**
+
+Вы уверены, что хотите удалить профиль?
+            """
+            
+            keyboard = [
+                [
+                    InlineKeyboardButton("✅ Да, удалить", callback_data="confirm_delete_profile"),
+                    InlineKeyboardButton("❌ Отмена", callback_data="main_profile")
+                ]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            
+            await self.send_or_edit_message(
+                context=context,
+                chat_id=chat_id,
+                user_id=user_id,
+                text=delete_warning_text,
+                reply_markup=reply_markup,
+                parse_mode='Markdown',
+                query=query
+            )
+        
+        elif data == 'confirm_delete_profile':
+            # Подтверждение удаления профиля
+            logger.info(f"Удаление профиля user_id={user_id}")
+            
+            # Сброс профиля
+            success = self.db.reset_user_profile(user_id)
+            
+            if success:
+                delete_success_text = """
+✅ **Профиль успешно удален!**
+
+Ваши регистрационные данные были удалены.
+
+Вы можете:
+• 🚀 Пройти регистрацию заново через /start
+• 📚 Просматривать каталог продуктов
+• 🌐 Посетить наш веб-сайт
+
+Спасибо, что были с нами! 🙏
+                """
+                
+                keyboard = [
+                    [InlineKeyboardButton("🚀 Начать регистрацию", callback_data="start_registration")],
+                    [InlineKeyboardButton("🏠 Главное меню", callback_data="main_menu")]
+                ]
+                reply_markup = InlineKeyboardMarkup(keyboard)
+                
+                await self.send_or_edit_message(
+                    context=context,
+                    chat_id=chat_id,
+                    user_id=user_id,
+                    text=delete_success_text,
+                    reply_markup=reply_markup,
+                    parse_mode='Markdown',
+                    query=query
+                )
+                logger.info(f"✅ Профиль user_id={user_id} успешно удален")
+            else:
+                error_text = """
+❌ **Ошибка при удалении профиля**
+
+Произошла ошибка при попытке удалить профиль.
+
+Пожалуйста, попробуйте позже или обратитесь к администратору.
+                """
+                
+                keyboard = [
+                    [InlineKeyboardButton("👤 Мой профиль", callback_data="main_profile")],
+                    [InlineKeyboardButton("🏠 Главное меню", callback_data="main_menu")]
+                ]
+                reply_markup = InlineKeyboardMarkup(keyboard)
+                
+                await self.send_or_edit_message(
+                    context=context,
+                    chat_id=chat_id,
+                    user_id=user_id,
+                    text=error_text,
+                    reply_markup=reply_markup,
+                    parse_mode='Markdown',
+                    query=query
+                )
+                logger.error(f"❌ Ошибка при удалении профиля user_id={user_id}")
             
         elif data == 'main_help':
             # Показать справку
